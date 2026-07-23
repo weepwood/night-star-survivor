@@ -72,8 +72,8 @@ jobs:
       - name: 检查全窗口战场与内嵌 HUD
         run: |
           grep -q "height: 100dvh" fullscreen-hud.css
-          grep -q "--arena-left" fullscreen-hud.css
-          grep -q "--arena-bottom" fullscreen-hud.css
+          grep -q -- "--arena-left" fullscreen-hud.css
+          grep -q -- "--arena-bottom" fullscreen-hud.css
           grep -q "setArenaInsets" fit-canvas.js
           grep -q "canvasShell.clientHeight" fit-canvas.js
           grep -q "fullscreen-hud.css" index.html
