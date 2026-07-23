@@ -26,9 +26,12 @@ jobs:
           node --check rich-content.js
           node --check combat-telemetry.js
           node --check live-upgrade.js
+          node --check gameplay-director.js
+          node --check victory-guard.js
           node --check fit-canvas.js
           node --check tests/hud-structure.mjs
           node --check tests/live-upgrade.mjs
+          node --check tests/gameplay-director.mjs
 
       - name: 检查核心静态文件
         run: |
@@ -42,12 +45,17 @@ jobs:
           test -s combat-telemetry.js
           test -s live-upgrade.css
           test -s live-upgrade.js
+          test -s gameplay-director.css
+          test -s gameplay-director.js
+          test -s gameplay-layout.css
+          test -s victory-guard.js
           test -s fit-canvas.css
           test -s fit-canvas.js
           test -s fullscreen-hud.css
           test -s hud-visibility.css
           test -s tests/hud-structure.mjs
           test -s tests/live-upgrade.mjs
+          test -s tests/gameplay-director.mjs
 
       - name: 检查 Pixel-perfect 渲染约束
         run: |
@@ -101,6 +109,9 @@ jobs:
       - name: 检查实时非暂停构筑
         run: node tests/live-upgrade.mjs
 
+      - name: 检查夜幕目标、随机星契与增强反馈
+        run: node tests/gameplay-director.mjs
+
       - name: 检查全窗口战场与内嵌 HUD
         run: |
           grep -q "height: 100dvh" fullscreen-hud.css
@@ -109,8 +120,8 @@ jobs:
           grep -q "setArenaInsets" fit-canvas.js
           grep -q "canvasShell.clientHeight" fit-canvas.js
           grep -q "fullscreen-hud.css" index.html
-          grep -q "角色状态与当前构筑" index.html
-          grep -q "输出统计和道具信息" index.html
+          grep -q "角色状态、目标与当前构筑" index.html
+          grep -q "战场道具与输出统计" index.html
           grep -q 'data-hud-version="2"' index.html
 
       - name: 检查完整战场适配

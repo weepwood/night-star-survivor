@@ -1,0 +1,63 @@
+/* 目标与星契面板的可视区域约束，避免新增玩法面板越过战场边界。 */
+.stage-left {
+  max-height: calc(100% - var(--arena-top) - var(--arena-bottom) - 82px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.player-pixel-status {
+  grid-column: 1 / -1;
+}
+
+.mission-pane,
+.synergy-pane {
+  min-width: 0;
+}
+
+@media (max-width: 980px), (max-height: 620px) {
+  .stage-left {
+    max-height: calc(100% - var(--arena-top) - var(--arena-bottom) - 72px);
+  }
+
+  .synergy-pane {
+    max-height: 150px;
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 680px), (max-height: 470px) {
+  .stage-left {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr);
+    gap: 4px;
+    max-height: calc(100% - var(--arena-top) - var(--arena-bottom) - 48px);
+    overflow: hidden;
+  }
+
+  .player-pane,
+  .mission-pane {
+    min-width: 0;
+  }
+
+  .mission-pane {
+    display: block !important;
+  }
+
+  .synergy-pane {
+    display: none;
+  }
+
+  .player-pixel-status {
+    display: none;
+  }
+}
+
+@media (max-width: 480px), (max-height: 390px) {
+  .stage-left {
+    grid-template-columns: 1fr;
+  }
+
+  .mission-pane {
+    display: none !important;
+  }
+}
