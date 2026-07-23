@@ -28,10 +28,12 @@ jobs:
           node --check live-upgrade.js
           node --check gameplay-director.js
           node --check victory-guard.js
+          node --check cosmic-contracts.js
           node --check fit-canvas.js
           node --check tests/hud-structure.mjs
           node --check tests/live-upgrade.mjs
           node --check tests/gameplay-director.mjs
+          node --check tests/cosmic-contracts.mjs
 
       - name: 检查核心静态文件
         run: |
@@ -49,6 +51,8 @@ jobs:
           test -s gameplay-director.js
           test -s gameplay-layout.css
           test -s victory-guard.js
+          test -s cosmic-contracts.css
+          test -s cosmic-contracts.js
           test -s fit-canvas.css
           test -s fit-canvas.js
           test -s fullscreen-hud.css
@@ -56,6 +60,7 @@ jobs:
           test -s tests/hud-structure.mjs
           test -s tests/live-upgrade.mjs
           test -s tests/gameplay-director.mjs
+          test -s tests/cosmic-contracts.mjs
 
       - name: 检查 Pixel-perfect 渲染约束
         run: |
@@ -111,6 +116,9 @@ jobs:
 
       - name: 检查夜幕目标、随机星契与增强反馈
         run: node tests/gameplay-director.mjs
+
+      - name: 检查星象契约、星链倍率与星印共鸣
+        run: node tests/cosmic-contracts.mjs
 
       - name: 检查全窗口战场与内嵌 HUD
         run: |
