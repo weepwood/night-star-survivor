@@ -66,14 +66,16 @@ const adaptiveScript = loader.indexOf("loadScript('adaptive-hud'");
 const nightfallScript = loader.indexOf("loadScript('nightfall-v3'");
 const integrityScript = loader.indexOf("loadScript('nightfall-v3-integrity'");
 const overlapScript = loader.indexOf("loadScript('ui-overlap-guard'");
+const performanceScript = loader.indexOf("loadScript('long-run-performance'");
 const adaptiveCss = loader.indexOf("loadStylesheet('adaptive-hud-expanded'");
 const nightfallCss = loader.indexOf("loadStylesheet('nightfall-v3'");
 const overlapStyle = loader.indexOf("loadStylesheet('ui-overlap-guard'");
 assert.ok(adaptiveScript >= 0 && nightfallScript > adaptiveScript, 'Nightfall V3 脚本必须在自适应 HUD 后加载');
 assert.ok(integrityScript > nightfallScript, '首领完整性守卫必须在 Nightfall V3 后加载');
-assert.ok(overlapScript > integrityScript, '界面重叠守卫必须最后加载');
+assert.ok(overlapScript > integrityScript, '界面重叠守卫必须在完整性守卫后加载');
+assert.ok(performanceScript > overlapScript, '长局性能守卫必须位于包装链最外层');
 assert.ok(adaptiveCss >= 0 && nightfallCss > adaptiveCss, 'Nightfall V3 样式必须覆盖已有 HUD 样式');
 assert.ok(overlapStyle > nightfallCss, '界面重叠守卫样式必须最后覆盖');
-assert.match(loader, /assetVersion = '20260723\.8'/);
+assert.match(loader, /assetVersion = '20260723\.9'/);
 
 console.log('nightfall-v3-ok');
