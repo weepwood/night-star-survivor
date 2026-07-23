@@ -1,0 +1,475 @@
+/* 全窗口战场：页面本身就是游戏界面，所有状态信息叠加在真实 Canvas 边界内。 */
+html,
+body {
+  width: 100%;
+  height: 100%;
+  min-width: 320px;
+  overflow: hidden;
+}
+
+body {
+  min-height: 100vh;
+  background: #05030a;
+}
+
+.game-shell {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+}
+
+.battlefield-frame {
+  --arena-left: 0px;
+  --arena-right: 0px;
+  --arena-top: 0px;
+  --arena-bottom: 0px;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at center, rgba(121, 230, 255, .08), transparent 56%),
+    #05030a;
+  box-shadow: none;
+}
+
+.battlefield-frame::before {
+  z-index: 2;
+  opacity: .18;
+}
+
+.battlefield-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+}
+
+.stage-center {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.canvas-shell {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background:
+    linear-gradient(90deg, rgba(5, 3, 10, .92), transparent 14%, transparent 86%, rgba(5, 3, 10, .92)),
+    linear-gradient(180deg, rgba(5, 3, 10, .86), transparent 18%, transparent 82%, rgba(5, 3, 10, .9));
+  box-shadow: none;
+}
+
+#game-canvas {
+  display: block;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  box-shadow:
+    0 0 0 1px rgba(121, 230, 255, .16),
+    0 0 42px rgba(64, 35, 110, .34);
+}
+
+.frame-header {
+  position: absolute;
+  z-index: 12;
+  top: calc(var(--arena-top) + 10px);
+  left: calc(var(--arena-left) + 10px);
+  right: calc(var(--arena-right) + 10px);
+  display: grid;
+  grid-template-columns: minmax(150px, .7fr) minmax(420px, 1.8fr) auto;
+  gap: 8px;
+  align-items: start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  pointer-events: none;
+}
+
+.frame-header > * {
+  pointer-events: auto;
+}
+
+.frame-brand,
+.top-metrics,
+.frame-actions,
+.ui-pane .pane-block {
+  border: 1px solid rgba(205, 185, 255, .2);
+  border-radius: 8px;
+  background: rgba(8, 5, 17, .78);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, .025),
+    0 5px 18px rgba(0, 0, 0, .24);
+  backdrop-filter: blur(3px);
+}
+
+.frame-brand {
+  min-height: 46px;
+  padding: 7px 10px;
+}
+
+.frame-brand .eyebrow {
+  margin-bottom: 2px;
+  font-size: 8px;
+  letter-spacing: .16em;
+}
+
+.frame-brand h1 {
+  font-size: clamp(14px, 1.2vw, 19px);
+  letter-spacing: -.02em;
+}
+
+.top-metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+}
+
+.metric-chip {
+  min-width: 0;
+  padding: 5px 7px;
+  border-radius: 5px;
+  background: rgba(25, 17, 45, .78);
+}
+
+.metric-chip span {
+  font-size: 8px;
+  letter-spacing: .05em;
+}
+
+.metric-chip strong {
+  margin-top: 1px;
+  overflow: hidden;
+  font-size: clamp(12px, 1.2vw, 17px);
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.render-chip {
+  display: none;
+}
+
+.frame-actions {
+  display: flex;
+  gap: 5px;
+  padding: 4px;
+}
+
+.frame-actions #scale-toggle {
+  display: none;
+}
+
+.icon-button {
+  min-height: 38px;
+  padding: 0 10px;
+  border-radius: 5px;
+  background: rgba(24, 17, 43, .88);
+  font-size: 11px;
+}
+
+.stage-left,
+.stage-right {
+  position: absolute;
+  z-index: 11;
+  display: grid;
+  gap: 7px;
+  pointer-events: none;
+}
+
+.stage-left > *,
+.stage-right > * {
+  pointer-events: auto;
+}
+
+.stage-left {
+  left: calc(var(--arena-left) + 11px);
+  bottom: calc(var(--arena-bottom) + 11px);
+  width: min(330px, calc(50% - var(--arena-left) - 18px));
+  grid-template-columns: 1fr;
+}
+
+.stage-right {
+  right: calc(var(--arena-right) + 11px);
+  bottom: calc(var(--arena-bottom) + 11px);
+  width: min(360px, calc(50% - var(--arena-right) - 18px));
+  max-height: min(46vh, 350px);
+  grid-template-columns: 1fr;
+  overflow: hidden;
+}
+
+.ui-pane .pane-block {
+  padding: 8px 9px;
+}
+
+.player-pane .pane-title-row,
+.build-pane .pane-title-row,
+.loot-codex .pane-title-row {
+  margin-bottom: 7px;
+}
+
+.pane-title {
+  font-size: 9px;
+}
+
+.pane-title-row small,
+.bar-label,
+.build-chip,
+.loot-entry strong,
+.loot-entry small {
+  font-size: 9px;
+}
+
+.status-orbit {
+  display: none;
+}
+
+.player-pane {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px 8px;
+}
+
+.player-pane .pane-title-row {
+  grid-column: 1 / -1;
+}
+
+.player-pane .bar-row,
+.player-pane .bar-row + .bar-row {
+  min-width: 0;
+  margin: 0;
+}
+
+.bar-label {
+  gap: 4px;
+  margin-bottom: 3px;
+}
+
+.bar-label strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bar-track {
+  height: 6px;
+  border-radius: 1px;
+}
+
+.build-pane {
+  max-height: 108px;
+  overflow: hidden;
+}
+
+.build-list {
+  gap: 4px;
+}
+
+.build-chip,
+.rarity-chip {
+  padding: 3px 5px;
+  border-radius: 4px;
+}
+
+.stage-right > .lore-pane,
+.stage-right > .atmosphere-pane {
+  display: none;
+}
+
+.loot-codex {
+  max-height: min(46vh, 350px);
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+.loot-codex-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.loot-entry {
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 5px;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.loot-pixel {
+  width: 21px;
+  height: 21px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+.active-buffs {
+  left: 50%;
+  bottom: calc(var(--arena-bottom) + 12px);
+  max-width: min(38%, 440px);
+  transform: translateX(-50%);
+  justify-content: center;
+}
+
+.active-buffs span {
+  padding: 3px 6px;
+  border-radius: 3px;
+  font-size: 9px;
+  background: rgba(8, 5, 17, .8);
+}
+
+.overlay {
+  position: absolute;
+  z-index: 20;
+  top: var(--arena-top);
+  right: var(--arena-right);
+  bottom: var(--arena-bottom);
+  left: var(--arena-left);
+  inset: var(--arena-top) var(--arena-right) var(--arena-bottom) var(--arena-left);
+  padding: 12px;
+  background: rgba(5, 3, 12, .76);
+}
+
+.panel {
+  width: min(760px, calc(100% - 20px));
+  max-height: calc(100% - 20px);
+  border-radius: 8px;
+}
+
+.boss-banner {
+  top: calc(var(--arena-top) + 72px);
+  z-index: 15;
+  min-width: min(420px, calc(100% - var(--arena-left) - var(--arena-right) - 30px));
+  border-radius: 6px;
+}
+
+@media (max-width: 980px), (max-height: 620px) {
+  .frame-header {
+    grid-template-columns: 1fr auto;
+  }
+
+  .frame-brand {
+    display: none;
+  }
+
+  .top-metrics {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .stage-right {
+    display: none;
+  }
+
+  .stage-left {
+    width: min(370px, calc(100% - var(--arena-left) - var(--arena-right) - 22px));
+  }
+
+  .active-buffs {
+    left: auto;
+    right: calc(var(--arena-right) + 11px);
+    max-width: 40%;
+    transform: none;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 680px), (max-height: 470px) {
+  .frame-header {
+    top: calc(var(--arena-top) + 5px);
+    left: calc(var(--arena-left) + 5px);
+    right: calc(var(--arena-right) + 5px);
+    gap: 4px;
+  }
+
+  .top-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .danger-chip {
+    display: none;
+  }
+
+  .metric-chip {
+    padding: 3px 5px;
+  }
+
+  .metric-chip strong {
+    font-size: 11px;
+  }
+
+  .frame-actions {
+    gap: 2px;
+    padding: 2px;
+  }
+
+  .icon-button {
+    min-height: 30px;
+    padding: 0 7px;
+    font-size: 9px;
+  }
+
+  .stage-left {
+    left: calc(var(--arena-left) + 5px);
+    bottom: calc(var(--arena-bottom) + 5px);
+    width: calc(100% - var(--arena-left) - var(--arena-right) - 10px);
+  }
+
+  .player-pane {
+    padding: 5px 6px !important;
+  }
+
+  .build-pane,
+  .active-buffs {
+    display: none;
+  }
+
+  .player-pane .pane-title-row {
+    display: none;
+  }
+
+  .bar-label span {
+    display: none;
+  }
+
+  .overlay {
+    padding: 5px;
+  }
+
+  .panel {
+    width: calc(100% - 8px);
+    max-height: calc(100% - 8px);
+    padding: 12px;
+  }
+
+  .hero-grid,
+  .upgrade-grid {
+    gap: 5px;
+    margin: 8px 0;
+  }
+
+  .hero-card,
+  .upgrade-card {
+    min-height: 112px;
+    padding: 8px;
+  }
+}
