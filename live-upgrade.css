@@ -1,0 +1,346 @@
+/* 实时构筑：升级时战斗保持运行，选择终端使用非模态像素 HUD。 */
+#upgrade-screen.live-upgrade-screen {
+  z-index: 18;
+  padding: 0;
+  background: transparent;
+  backdrop-filter: none;
+  pointer-events: none;
+}
+
+#upgrade-screen.live-upgrade-screen.visible {
+  display: block;
+}
+
+#upgrade-screen.live-upgrade-screen .upgrade-panel {
+  position: absolute;
+  top: calc(var(--arena-top) + 62px);
+  right: calc(var(--arena-right) + 9px);
+  width: clamp(280px, 31vw, 344px);
+  max-width: calc(100% - var(--arena-left) - var(--arena-right) - 18px);
+  max-height: calc(100% - var(--arena-top) - var(--arena-bottom) - 72px);
+  padding: 10px;
+  overflow: auto;
+  border: 2px solid var(--pixel-line-bright, #9f7aea);
+  border-radius: 0;
+  background: rgba(7, 5, 15, .95);
+  box-shadow:
+    3px 3px 0 rgba(2, 1, 6, .95),
+    inset 0 0 0 1px rgba(121, 230, 255, .16);
+  pointer-events: auto;
+}
+
+#upgrade-screen.live-upgrade-screen .upgrade-panel::before {
+  content: "STAR CHOICE // LIVE";
+  display: block;
+  margin: -3px -3px 7px;
+  padding: 3px 5px;
+  color: var(--pixel-bg-solid, #090611);
+  background: var(--pixel-cyan, #79e6ff);
+  font-family: "Courier New", "Microsoft YaHei", monospace;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.live-upgrade-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.live-upgrade-header .panel-kicker {
+  margin: 0 0 2px;
+}
+
+#upgrade-screen.live-upgrade-screen #upgrade-title {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.15;
+}
+
+.live-upgrade-queue {
+  flex: 0 0 auto;
+  padding: 3px 5px;
+  border: 1px solid var(--pixel-line, #4d3b70);
+  color: var(--pixel-gold, #ffd166);
+  background: #0d0918;
+  font-family: "Courier New", "Microsoft YaHei", monospace;
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.live-upgrade-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin-top: 7px;
+}
+
+.live-upgrade-meta span {
+  min-width: 0;
+  padding: 4px 5px;
+  border: 1px solid rgba(77, 59, 112, .85);
+  color: var(--muted);
+  background: #0d0918;
+  font-family: "Courier New", "Microsoft YaHei", monospace;
+  font-size: 7px;
+  text-align: center;
+}
+
+.live-upgrade-meta strong {
+  display: block;
+  margin-top: 2px;
+  overflow: hidden;
+  color: var(--pixel-cyan, #79e6ff);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.live-upgrade-timer {
+  height: 6px;
+  margin-top: 5px;
+  overflow: hidden;
+  border: 1px solid var(--pixel-line, #4d3b70);
+  background: #07050f;
+}
+
+#upgrade-timer-bar {
+  width: 100%;
+  height: 100%;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      var(--pixel-cyan, #79e6ff) 0 6px,
+      var(--pixel-line-bright, #9f7aea) 6px 9px
+    );
+  transition: none;
+}
+
+#upgrade-screen.live-upgrade-screen .upgrade-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 5px;
+  margin: 7px 0 0;
+}
+
+#upgrade-screen.live-upgrade-screen .live-upgrade-card {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto;
+  min-height: 88px;
+  padding: 7px;
+  overflow: hidden;
+  border: 1px solid var(--pixel-line, #4d3b70);
+  border-radius: 0;
+  background: #0d0918;
+  box-shadow: 2px 2px 0 rgba(2, 1, 6, .9);
+  transform: none;
+  transition: none;
+}
+
+#upgrade-screen.live-upgrade-screen .live-upgrade-card:hover,
+#upgrade-screen.live-upgrade-screen .live-upgrade-card:focus-visible {
+  border-color: var(--pixel-cyan, #79e6ff);
+  background: #151027;
+  transform: none;
+}
+
+#upgrade-screen.live-upgrade-screen .live-upgrade-card.recommended {
+  border-color: var(--pixel-gold, #ffd166);
+  box-shadow:
+    2px 2px 0 rgba(2, 1, 6, .9),
+    inset 3px 0 0 var(--pixel-gold, #ffd166);
+}
+
+.live-upgrade-card .upgrade-key {
+  grid-row: 1 / 4;
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  min-height: 52px;
+  border: 1px solid rgba(121, 230, 255, .5);
+  color: var(--pixel-cyan, #79e6ff);
+  background: #07050f;
+  font-family: "Courier New", monospace;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.live-upgrade-card .upgrade-icon {
+  display: none;
+}
+
+.live-upgrade-card .rarity-chip {
+  grid-column: 2;
+  justify-self: start;
+  padding: 2px 4px;
+  border-radius: 0;
+  font-size: 7px;
+}
+
+.live-upgrade-card .recommended-chip {
+  grid-column: 3;
+  justify-self: end;
+  padding: 2px 4px;
+  border: 1px solid rgba(255, 209, 102, .7);
+  color: var(--pixel-gold, #ffd166);
+  background: rgba(255, 209, 102, .08);
+  font-family: "Courier New", "Microsoft YaHei", monospace;
+  font-size: 7px;
+}
+
+#upgrade-screen.live-upgrade-screen .live-upgrade-card h3 {
+  grid-column: 2 / 4;
+  margin: 5px 0 2px;
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.1;
+}
+
+#upgrade-screen.live-upgrade-screen .live-upgrade-card p {
+  grid-column: 2 / 4;
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+body.live-upgrade-active .acquired-items-strip {
+  opacity: .38;
+}
+
+body.live-upgrade-active #upgrade-screen.live-upgrade-screen .upgrade-panel {
+  animation: live-upgrade-open .16s steps(3, end) both;
+}
+
+@keyframes live-upgrade-open {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.live-upgrade-active #upgrade-screen.live-upgrade-screen .upgrade-panel {
+    animation: none;
+  }
+}
+
+@media (max-width: 820px), (max-height: 520px) {
+  #upgrade-screen.live-upgrade-screen .upgrade-panel {
+    top: calc(var(--arena-top) + 48px);
+    right: calc(var(--arena-right) + 6px);
+    width: clamp(244px, 47vw, 310px);
+    max-height: calc(100% - var(--arena-top) - var(--arena-bottom) - 54px);
+    padding: 7px;
+  }
+
+  #upgrade-screen.live-upgrade-screen .upgrade-panel::before {
+    margin-bottom: 5px;
+  }
+
+  .live-upgrade-meta {
+    margin-top: 5px;
+  }
+
+  #upgrade-screen.live-upgrade-screen .live-upgrade-card {
+    min-height: 72px;
+    padding: 5px;
+  }
+
+  #upgrade-screen.live-upgrade-screen .live-upgrade-card p {
+    -webkit-line-clamp: 1;
+  }
+}
+
+@media (max-width: 620px), (max-height: 410px) {
+  #upgrade-screen.live-upgrade-screen .upgrade-panel {
+    top: calc(var(--arena-top) + 43px);
+    left: calc(var(--arena-left) + 5px);
+    right: calc(var(--arena-right) + 5px);
+    width: auto;
+    max-width: none;
+    max-height: 47%;
+  }
+
+  #upgrade-screen.live-upgrade-screen .upgrade-panel::before,
+  .live-upgrade-header .panel-kicker,
+  .live-upgrade-meta span:nth-child(3) {
+    display: none;
+  }
+
+  .live-upgrade-header {
+    align-items: center;
+  }
+
+  #upgrade-screen.live-upgrade-screen #upgrade-title {
+    font-size: 11px;
+  }
+
+  .live-upgrade-meta {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    grid-template-columns: repeat(2, auto);
+    margin: 0;
+  }
+
+  .live-upgrade-meta span {
+    padding: 2px 4px;
+  }
+
+  .live-upgrade-meta span strong {
+    display: inline;
+    margin: 0 0 0 3px;
+  }
+
+  .live-upgrade-timer {
+    margin-top: 4px;
+  }
+
+  #upgrade-screen.live-upgrade-screen .upgrade-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 3px;
+    margin-top: 4px;
+  }
+
+  #upgrade-screen.live-upgrade-screen .live-upgrade-card {
+    display: block;
+    min-height: 64px;
+    padding: 4px;
+  }
+
+  .live-upgrade-card .upgrade-key {
+    float: left;
+    display: grid;
+    width: 16px;
+    min-height: 16px;
+    margin-right: 4px;
+    font-size: 9px;
+  }
+
+  .live-upgrade-card .rarity-chip,
+  .live-upgrade-card .recommended-chip {
+    padding: 1px 3px;
+    font-size: 6px;
+  }
+
+  .live-upgrade-card .recommended-chip {
+    float: right;
+  }
+
+  #upgrade-screen.live-upgrade-screen .live-upgrade-card h3 {
+    clear: both;
+    margin: 5px 0 0;
+    font-size: 9px;
+  }
+
+  #upgrade-screen.live-upgrade-screen .live-upgrade-card p {
+    display: none;
+  }
+}
