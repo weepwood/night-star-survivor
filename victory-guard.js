@@ -28,6 +28,7 @@
 
   loadStylesheet('cosmic-contracts', 'cosmic-contracts');
   loadStylesheet('adaptive-hud', 'adaptive-hud');
+  loadStylesheet('adaptive-hud-expanded', 'adaptive-hud-expanded');
   loadScript('cosmic-contracts', 'cosmic-contracts');
   loadScript('adaptive-hud', 'adaptive-hud');
 })();
