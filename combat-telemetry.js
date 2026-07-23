@@ -211,6 +211,15 @@
     return result;
   };
 
+  const originalEndGame = endGame;
+  endGame = function endGameWithTelemetry() {
+    renderTelemetry(true);
+    originalEndGame();
+    if (ui.gameOverStats) {
+      ui.gameOverStats.textContent += ` 总伤害 ${formatNumber(totalDamage)}，峰值 DPS ${formatNumber(peakDps)}。`;
+    }
+  };
+
   const originalUpdateUi = updateUi;
   updateUi = function stableUpdateUi(force = false) {
     const now = performance.now();
