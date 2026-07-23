@@ -1,0 +1,612 @@
+/* 自适应 HUD：默认只保留战斗关键信息，悬停或键盘聚焦时显示完整详情。 */
+#hud-detail-tooltip {
+  position: fixed;
+  z-index: 60;
+  display: none;
+  width: max-content;
+  max-width: min(300px, calc(100vw - 18px));
+  padding: 7px 9px;
+  border: 2px solid var(--pixel-cyan, #79e6ff);
+  border-radius: 0;
+  color: var(--ink, #f6f4ff);
+  background: rgba(7, 5, 15, .97);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, .58), inset 0 0 0 1px rgba(196, 167, 255, .15);
+  font-family: "Courier New", "Microsoft YaHei", monospace;
+  font-size: 9px;
+  line-height: 1.55;
+  white-space: normal;
+  pointer-events: none;
+}
+
+#hud-detail-tooltip.visible {
+  display: block;
+}
+
+[data-hud-tooltip] {
+  outline-offset: 1px;
+}
+
+[data-hud-tooltip]:focus-visible {
+  outline: 2px solid rgba(121, 230, 255, .7);
+}
+
+#hud-density-toggle {
+  min-width: 62px;
+}
+
+body.hud-compact-mode .frame-header {
+  top: calc(var(--arena-top) + 6px);
+  left: calc(var(--arena-left) + 6px);
+  right: calc(var(--arena-right) + 6px);
+  grid-template-columns: 122px minmax(390px, 1fr) auto;
+  gap: 5px;
+}
+
+body.hud-compact-mode .frame-brand {
+  min-height: 34px;
+  padding: 4px 7px;
+}
+
+body.hud-compact-mode .frame-brand .eyebrow {
+  display: none;
+}
+
+body.hud-compact-mode .frame-brand h1 {
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 24px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.hud-compact-mode .top-metrics {
+  grid-template-columns: repeat(7, minmax(46px, 1fr));
+  gap: 2px;
+  padding: 2px;
+}
+
+body.hud-compact-mode .metric-chip {
+  min-height: 32px;
+  padding: 3px 5px;
+  border-radius: 2px;
+}
+
+body.hud-compact-mode .metric-chip span,
+body.hud-compact-mode .metric-chip small {
+  font-size: 6px;
+}
+
+body.hud-compact-mode .metric-chip strong,
+body.hud-compact-mode .objective-chip strong,
+body.hud-compact-mode .cosmic-contract-chip strong {
+  margin-top: 0;
+  font-size: 10px !important;
+}
+
+body.hud-compact-mode .objective-chip {
+  min-width: 0;
+}
+
+body.hud-compact-mode .frame-actions {
+  gap: 2px;
+  padding: 2px;
+}
+
+body.hud-compact-mode .icon-button {
+  min-height: 32px;
+  padding: 0 7px;
+  font-size: 8px;
+}
+
+body.hud-compact-mode .stage-left,
+body.hud-compact-mode .stage-right {
+  gap: 4px;
+}
+
+body.hud-compact-mode .stage-left {
+  left: calc(var(--arena-left) + 7px);
+  bottom: calc(var(--arena-bottom) + 7px);
+  width: min(244px, calc(50% - var(--arena-left) - 14px));
+  max-height: calc(100% - var(--arena-top) - var(--arena-bottom) - 52px);
+}
+
+body.hud-compact-mode .stage-right {
+  right: calc(var(--arena-right) + 7px);
+  bottom: calc(var(--arena-bottom) + 7px);
+  width: min(224px, calc(50% - var(--arena-right) - 14px));
+  max-height: min(39vh, 260px);
+}
+
+body.hud-compact-mode .ui-pane .pane-block {
+  padding: 5px 6px;
+  border-radius: 2px;
+  background: rgba(8, 5, 17, .72);
+  backdrop-filter: none;
+}
+
+body.hud-compact-mode .pane-title-row {
+  min-height: 13px;
+  margin-bottom: 3px !important;
+}
+
+body.hud-compact-mode .pane-title {
+  font-size: 7px;
+}
+
+body.hud-compact-mode .pane-title-row small {
+  max-width: 60%;
+  overflow: hidden;
+  font-size: 6px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.hud-compact-mode .player-pane {
+  gap: 3px 5px;
+}
+
+body.hud-compact-mode .player-pixel-status {
+  display: block;
+  grid-column: 1 / -1;
+  margin: 0 0 3px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+body.hud-compact-mode .player-pixel-core {
+  display: none;
+}
+
+body.hud-compact-mode .player-status-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2px;
+}
+
+body.hud-compact-mode .player-status-grid span {
+  min-height: 20px;
+  padding: 2px;
+  text-align: center;
+}
+
+body.hud-compact-mode .player-status-grid small {
+  display: none;
+}
+
+body.hud-compact-mode .player-status-grid strong {
+  font-size: 7px;
+}
+
+body.hud-compact-mode .bar-label {
+  margin-bottom: 1px;
+  font-size: 7px;
+}
+
+body.hud-compact-mode .bar-label span {
+  font-size: 6px;
+}
+
+body.hud-compact-mode .bar-track {
+  height: 4px;
+}
+
+body.hud-compact-mode .mission-pane {
+  max-height: 49px;
+  overflow: hidden;
+}
+
+body.hud-compact-mode .mission-summary {
+  gap: 1px;
+}
+
+body.hud-compact-mode .mission-summary strong {
+  overflow: hidden;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.hud-compact-mode .mission-summary small,
+body.hud-compact-mode .objective-stage-list {
+  display: none;
+}
+
+body.hud-compact-mode .mission-progress {
+  height: 5px;
+  margin: 3px 0 0;
+}
+
+body.hud-compact-mode .build-pane {
+  max-height: 40px;
+}
+
+body.hud-compact-mode .build-list {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 2px;
+  overflow: hidden;
+}
+
+body.hud-compact-mode .build-chip,
+body.hud-compact-mode .rarity-chip {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 90px;
+  padding: 2px 4px;
+  overflow: hidden;
+  font-size: 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.hud-compact-mode .synergy-pane {
+  max-height: 64px;
+  overflow: hidden;
+}
+
+body.hud-compact-mode .synergy-list {
+  gap: 2px;
+}
+
+body.hud-compact-mode .synergy-chip {
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 3px;
+  min-height: 15px;
+  padding: 2px 3px;
+}
+
+body.hud-compact-mode .synergy-chip strong {
+  overflow: hidden;
+  font-size: 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.hud-compact-mode .synergy-chip small,
+body.hud-compact-mode .synergy-chip em {
+  display: none;
+}
+
+body.hud-compact-mode .synergy-state {
+  font-size: 6px;
+}
+
+body.hud-compact-mode .telemetry-pane .pane-title-row,
+body.hud-compact-mode .acquired-pane .pane-title-row {
+  margin-bottom: 3px;
+}
+
+body.hud-compact-mode .telemetry-grid {
+  gap: 2px;
+}
+
+body.hud-compact-mode .telemetry-grid > span {
+  min-height: 29px;
+  padding: 3px;
+}
+
+body.hud-compact-mode .telemetry-grid small {
+  font-size: 6px;
+}
+
+body.hud-compact-mode .telemetry-grid strong {
+  font-size: 10px;
+}
+
+body.hud-compact-mode .acquired-pane {
+  max-height: 74px;
+  overflow: hidden;
+}
+
+body.hud-compact-mode .acquired-item-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+  max-height: 45px;
+  overflow: hidden;
+}
+
+body.hud-compact-mode .acquired-item {
+  grid-template-columns: 6px minmax(0, 1fr);
+  min-height: 20px;
+  padding: 2px 3px;
+}
+
+body.hud-compact-mode .acquired-item strong {
+  overflow: hidden;
+  font-size: 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.hud-compact-mode .acquired-item small {
+  display: none;
+}
+
+body.hud-compact-mode .loot-codex {
+  max-height: 50px;
+  overflow: hidden;
+}
+
+body.hud-compact-mode .loot-codex .pane-title-row {
+  display: none;
+}
+
+body.hud-compact-mode .loot-codex-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 2px;
+}
+
+body.hud-compact-mode .loot-entry {
+  display: grid;
+  grid-template-columns: 1fr;
+  place-items: center;
+  min-height: 30px;
+  padding: 2px;
+}
+
+body.hud-compact-mode .loot-entry > span {
+  display: none;
+}
+
+body.hud-compact-mode .loot-pixel {
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+}
+
+body.hud-compact-mode .active-buffs {
+  bottom: calc(var(--arena-bottom) + 7px);
+  gap: 2px;
+  max-width: min(31%, 330px);
+}
+
+body.hud-compact-mode .active-buffs span {
+  padding: 2px 4px;
+  font-size: 7px;
+}
+
+body.hud-compact-mode #upgrade-screen.live-upgrade-screen .upgrade-panel {
+  top: calc(var(--arena-top) + 47px);
+  right: calc(var(--arena-right) + 7px);
+  width: clamp(220px, 24vw, 256px);
+  max-height: calc(100% - var(--arena-top) - var(--arena-bottom) - 54px);
+  padding: 6px;
+}
+
+body.hud-compact-mode #upgrade-screen.live-upgrade-screen .upgrade-panel::before,
+body.hud-compact-mode .live-upgrade-header .panel-kicker {
+  display: none;
+}
+
+body.hud-compact-mode #upgrade-screen.live-upgrade-screen #upgrade-title {
+  font-size: 11px;
+}
+
+body.hud-compact-mode .live-upgrade-meta {
+  gap: 2px;
+  margin-top: 4px;
+}
+
+body.hud-compact-mode .live-upgrade-meta span {
+  padding: 2px;
+  font-size: 6px;
+}
+
+body.hud-compact-mode .live-upgrade-meta strong {
+  display: inline;
+  margin: 0 0 0 2px;
+  font-size: 7px;
+}
+
+body.hud-compact-mode #upgrade-screen.live-upgrade-screen .upgrade-grid {
+  gap: 3px;
+  margin-top: 4px;
+}
+
+body.hud-compact-mode #upgrade-screen.live-upgrade-screen .live-upgrade-card {
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  min-height: 48px;
+  padding: 4px;
+}
+
+body.hud-compact-mode .live-upgrade-card .upgrade-key {
+  width: 17px;
+  min-height: 34px;
+  font-size: 9px;
+}
+
+body.hud-compact-mode #upgrade-screen.live-upgrade-screen .live-upgrade-card h3 {
+  margin: 2px 0 0;
+  font-size: 9px;
+}
+
+body.hud-compact-mode #upgrade-screen.live-upgrade-screen .live-upgrade-card p {
+  display: none;
+}
+
+body.hud-compact-mode .cosmic-contract-terminal {
+  top: calc(var(--arena-top) + 47px);
+  right: calc(var(--arena-right) + 7px);
+  width: min(246px, calc(100% - var(--arena-left) - var(--arena-right) - 14px));
+  max-height: min(46vh, 300px);
+  gap: 4px;
+  padding: 5px;
+}
+
+body.hud-compact-mode .contract-title-row {
+  padding-bottom: 3px;
+  font-size: 8px;
+}
+
+body.hud-compact-mode .contract-summary {
+  gap: 1px;
+}
+
+body.hud-compact-mode .contract-summary strong {
+  font-size: 9px;
+}
+
+body.hud-compact-mode .contract-summary small {
+  overflow: hidden;
+  font-size: 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.hud-compact-mode .contract-options {
+  gap: 3px;
+}
+
+body.hud-compact-mode .contract-option {
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 38px;
+  padding: 4px 4px 4px 27px;
+}
+
+body.hud-compact-mode .contract-key {
+  top: 4px;
+  left: 4px;
+  width: 16px;
+  height: 16px;
+  font-size: 8px;
+}
+
+body.hud-compact-mode .contract-option strong {
+  overflow: hidden;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.hud-compact-mode .contract-option small,
+body.hud-compact-mode .contract-option em,
+body.hud-compact-mode .contract-option b {
+  display: none;
+}
+
+body.hud-compact-mode .contract-chain-row {
+  padding: 3px 4px;
+  font-size: 7px;
+}
+
+body.hud-compact-mode .contract-chain-row strong {
+  font-size: 9px;
+}
+
+body.hud-compact-mode .contract-imprints {
+  gap: 2px;
+  max-height: 22px;
+  overflow: hidden;
+}
+
+body.hud-compact-mode .contract-imprint,
+body.hud-compact-mode .contract-empty {
+  padding: 2px 3px;
+  font-size: 7px;
+}
+
+body.hud-expanded-mode .stage-left {
+  width: min(330px, calc(50% - var(--arena-left) - 18px));
+}
+
+body.hud-expanded-mode .stage-right {
+  width: min(360px, calc(50% - var(--arena-right) - 18px));
+  max-height: min(52vh, 390px);
+}
+
+body.hud-expanded-mode .mission-summary small,
+body.hud-expanded-mode .objective-stage-list,
+body.hud-expanded-mode .synergy-chip small,
+body.hud-expanded-mode .synergy-chip em,
+body.hud-expanded-mode .loot-entry > span,
+body.hud-expanded-mode #upgrade-screen.live-upgrade-screen .live-upgrade-card p,
+body.hud-expanded-mode .contract-option small,
+body.hud-expanded-mode .contract-option em,
+body.hud-expanded-mode .contract-option b {
+  display: initial;
+}
+
+body.hud-expanded-mode .build-list {
+  flex-wrap: wrap;
+}
+
+body.hud-expanded-mode .cosmic-contract-terminal {
+  width: min(330px, calc(100% - var(--arena-left) - var(--arena-right) - 24px));
+}
+
+@media (max-width: 1100px), (max-height: 680px) {
+  body.hud-compact-mode .frame-brand {
+    display: none;
+  }
+
+  body.hud-compact-mode .frame-header {
+    grid-template-columns: minmax(350px, 1fr) auto;
+  }
+
+  body.hud-compact-mode .stage-left {
+    width: min(224px, calc(50% - var(--arena-left) - 12px));
+  }
+
+  body.hud-compact-mode .stage-right {
+    width: min(200px, calc(50% - var(--arena-right) - 12px));
+  }
+}
+
+@media (max-width: 980px), (max-height: 620px) {
+  body.hud-compact-mode .stage-right {
+    display: none;
+  }
+
+  body.hud-compact-mode .stage-left {
+    width: min(230px, calc(100% - var(--arena-left) - var(--arena-right) - 14px));
+  }
+
+  body.hud-compact-mode .synergy-pane,
+  body.hud-compact-mode .build-pane {
+    display: none;
+  }
+}
+
+@media (max-width: 680px), (max-height: 470px) {
+  body.hud-compact-mode .frame-header {
+    top: calc(var(--arena-top) + 3px);
+    left: calc(var(--arena-left) + 3px);
+    right: calc(var(--arena-right) + 3px);
+    grid-template-columns: 1fr auto;
+  }
+
+  body.hud-compact-mode .top-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  body.hud-compact-mode .phase-chip,
+  body.hud-compact-mode .danger-chip,
+  body.hud-compact-mode .objective-chip {
+    display: none;
+  }
+
+  body.hud-compact-mode .stage-left {
+    left: calc(var(--arena-left) + 4px);
+    bottom: calc(var(--arena-bottom) + 4px);
+    width: calc(100% - var(--arena-left) - var(--arena-right) - 8px);
+  }
+
+  body.hud-compact-mode .mission-pane,
+  body.hud-compact-mode .player-pixel-status {
+    display: none !important;
+  }
+
+  body.hud-compact-mode #upgrade-screen.live-upgrade-screen .upgrade-panel,
+  body.hud-compact-mode .cosmic-contract-terminal {
+    right: calc(var(--arena-right) + 4px);
+    left: calc(var(--arena-left) + 4px);
+    width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #hud-detail-tooltip {
+    transition: none;
+  }
+}

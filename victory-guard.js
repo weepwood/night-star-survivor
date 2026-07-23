@@ -6,20 +6,29 @@
     finalEndGame();
   };
 
-  const assetVersion = '20260723.5';
-  if (!document.querySelector('link[data-cosmic-contracts]')) {
+  const assetVersion = '20260723.6';
+
+  function loadStylesheet(name, marker) {
+    if (document.querySelector(`link[data-${marker}]`)) return;
     const stylesheet = document.createElement('link');
     stylesheet.rel = 'stylesheet';
-    stylesheet.href = `./cosmic-contracts.css?v=${assetVersion}`;
-    stylesheet.dataset.cosmicContracts = 'true';
+    stylesheet.href = `./${name}.css?v=${assetVersion}`;
+    stylesheet.setAttribute(`data-${marker}`, 'true');
     document.head.appendChild(stylesheet);
   }
 
-  if (!document.querySelector('script[data-cosmic-contracts]')) {
+  function loadScript(name, marker) {
+    if (document.querySelector(`script[data-${marker}]`)) return;
     const script = document.createElement('script');
-    script.src = `./cosmic-contracts.js?v=${assetVersion}`;
+    script.src = `./${name}.js?v=${assetVersion}`;
     script.async = false;
-    script.dataset.cosmicContracts = 'true';
+    script.setAttribute(`data-${marker}`, 'true');
     document.body.appendChild(script);
   }
+
+  loadStylesheet('cosmic-contracts', 'cosmic-contracts');
+  loadStylesheet('adaptive-hud', 'adaptive-hud');
+  loadStylesheet('adaptive-hud-expanded', 'adaptive-hud-expanded');
+  loadScript('cosmic-contracts', 'cosmic-contracts');
+  loadScript('adaptive-hud', 'adaptive-hud');
 })();

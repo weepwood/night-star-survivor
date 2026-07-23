@@ -37,8 +37,8 @@ assert(css.includes('.contract-option'), '缺少契约选项样式');
 assert(css.includes('.contract-imprint.resonant'), '缺少星印共鸣样式');
 assert(css.includes('@media (max-width: 680px)'), '缺少小窗口布局');
 
-assert(loader.includes('cosmic-contracts.css?v='), '未加载契约样式');
-assert(loader.includes('cosmic-contracts.js?v='), '未加载契约脚本');
+assert(loader.includes("loadStylesheet('cosmic-contracts'"), '未通过资源加载器加载契约样式');
+assert(loader.includes("loadScript('cosmic-contracts'"), '未通过资源加载器加载契约脚本');
 assert(loader.includes('script.async = false'), '契约脚本加载顺序不稳定');
 
 console.log('星象契约、星链倍率、风险任务与星印共鸣检查通过');
