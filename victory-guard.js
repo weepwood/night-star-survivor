@@ -6,7 +6,7 @@
     finalEndGame();
   };
 
-  const assetVersion = '20260723.8';
+  const assetVersion = '20260723.9';
 
   function loadStylesheet(name, marker) {
     if (document.querySelector(`link[data-${marker}]`)) return;
@@ -36,4 +36,5 @@
   loadScript('nightfall-v3', 'nightfall-v3');
   loadScript('nightfall-v3-integrity', 'nightfall-v3-integrity');
   loadScript('ui-overlap-guard', 'ui-overlap-guard');
+  loadScript('long-run-performance', 'long-run-performance');
 })();
