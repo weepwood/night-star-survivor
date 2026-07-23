@@ -1,0 +1,82 @@
+/* UI 优先级守卫：星尘强化出现时，把星象契约折叠为只读状态条。 */
+body.nightfall-v3.live-upgrade-active .cosmic-contract-terminal,
+body.nightfall-v3 .cosmic-contract-terminal.contract-deferred-for-upgrade {
+  z-index: 19;
+  top: calc(var(--arena-top) + 47px) !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: calc(var(--arena-left) + 7px) !important;
+  display: grid !important;
+  width: min(230px, calc(100% - var(--arena-left) - var(--arena-right) - 14px)) !important;
+  max-height: 78px !important;
+  gap: 3px !important;
+  padding: 4px 5px !important;
+  overflow: hidden !important;
+  border-color: rgba(121, 230, 255, .46) !important;
+  background: rgba(7, 5, 15, .94) !important;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, .46) !important;
+  opacity: .96 !important;
+  transform: none !important;
+  pointer-events: none !important;
+}
+
+body.nightfall-v3.live-upgrade-active .cosmic-contract-terminal .contract-title-row,
+body.nightfall-v3 .cosmic-contract-terminal.contract-deferred-for-upgrade .contract-title-row {
+  min-height: 14px;
+  padding-bottom: 2px;
+  border-bottom-width: 1px;
+  font-size: 7px;
+}
+
+body.nightfall-v3.live-upgrade-active .cosmic-contract-terminal .contract-title-row small,
+body.nightfall-v3 .cosmic-contract-terminal.contract-deferred-for-upgrade .contract-title-row small {
+  font-size: 6px;
+}
+
+body.nightfall-v3.live-upgrade-active .cosmic-contract-terminal .contract-summary,
+body.nightfall-v3 .cosmic-contract-terminal.contract-deferred-for-upgrade .contract-summary {
+  gap: 1px;
+}
+
+body.nightfall-v3.live-upgrade-active .cosmic-contract-terminal .contract-summary strong,
+body.nightfall-v3 .cosmic-contract-terminal.contract-deferred-for-upgrade .contract-summary strong {
+  overflow: hidden;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.nightfall-v3.live-upgrade-active .cosmic-contract-terminal .contract-summary small,
+body.nightfall-v3 .cosmic-contract-terminal.contract-deferred-for-upgrade .contract-summary small {
+  overflow: hidden;
+  font-size: 6px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.nightfall-v3.live-upgrade-active .cosmic-contract-terminal .contract-options,
+body.nightfall-v3.live-upgrade-active .cosmic-contract-terminal .contract-chain-row,
+body.nightfall-v3.live-upgrade-active .cosmic-contract-terminal .contract-imprints,
+body.nightfall-v3 .cosmic-contract-terminal.contract-deferred-for-upgrade .contract-options,
+body.nightfall-v3 .cosmic-contract-terminal.contract-deferred-for-upgrade .contract-chain-row,
+body.nightfall-v3 .cosmic-contract-terminal.contract-deferred-for-upgrade .contract-imprints {
+  display: none !important;
+}
+
+body.nightfall-v3.live-upgrade-active .cosmic-contract-terminal .contract-progress-meta,
+body.nightfall-v3 .cosmic-contract-terminal.contract-deferred-for-upgrade .contract-progress-meta {
+  margin-bottom: 2px;
+  font-size: 6px;
+}
+
+body.nightfall-v3.live-upgrade-active .cosmic-contract-terminal .contract-progress,
+body.nightfall-v3 .cosmic-contract-terminal.contract-deferred-for-upgrade .contract-progress {
+  height: 5px;
+}
+
+@media (max-width: 680px), (max-height: 470px) {
+  body.nightfall-v3.live-upgrade-active .cosmic-contract-terminal,
+  body.nightfall-v3 .cosmic-contract-terminal.contract-deferred-for-upgrade {
+    display: none !important;
+  }
+}
