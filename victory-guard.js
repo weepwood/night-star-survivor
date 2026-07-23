@@ -33,4 +33,5 @@
   loadScript('cosmic-contracts', 'cosmic-contracts');
   loadScript('adaptive-hud', 'adaptive-hud');
   loadScript('nightfall-v3', 'nightfall-v3');
+  loadScript('nightfall-v3-integrity', 'nightfall-v3-integrity');
 })();
