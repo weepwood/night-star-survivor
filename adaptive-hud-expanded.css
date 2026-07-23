@@ -8,6 +8,7 @@ body.hud-expanded-mode .mission-summary small,
 body.hud-expanded-mode .synergy-chip small,
 body.hud-expanded-mode .synergy-chip em,
 body.hud-expanded-mode .loot-entry > span,
+body.hud-expanded-mode #upgrade-screen.live-upgrade-screen .live-upgrade-card p,
 body.hud-expanded-mode .contract-option small,
 body.hud-expanded-mode .contract-option em,
 body.hud-expanded-mode .contract-option b {
