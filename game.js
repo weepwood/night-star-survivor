@@ -1,7 +1,16 @@
 const canvas = document.querySelector('#game-canvas');
-const ctx = canvas.getContext('2d');
-const WORLD_WIDTH = 960;
-const WORLD_HEIGHT = 540;
+const ctx = canvas.getContext('2d', { alpha: false });
+
+const VIEW_WIDTH = 640;
+const VIEW_HEIGHT = 360;
+const WORLD_WIDTH = 2560;
+const WORLD_HEIGHT = 1440;
+const TAU = Math.PI * 2;
+const PHASE_NAMES = ['薄暮', '血月', '蚀夜', '无光'];
+
+canvas.width = VIEW_WIDTH;
+canvas.height = VIEW_HEIGHT;
+ctx.imageSmoothingEnabled = false;
 
 const ui = {
   time: document.querySelector('#time-value'),
@@ -27,12 +36,11 @@ const ui = {
   bossName: document.querySelector('#boss-name'),
   pauseButton: document.querySelector('#pause-button'),
   soundButton: document.querySelector('#sound-toggle'),
+  scaleButton: document.querySelector('#scale-toggle'),
+  renderValue: document.querySelector('#render-value'),
 };
 
 const keys = new Set();
-const TAU = Math.PI * 2;
-const PHASE_NAMES = ['薄暮', '血月', '蚀夜', '无光'];
-
 let selectedHero = 'astrologer';
 let difficulty = 1;
 let running = false;
@@ -47,7 +55,9 @@ let previousPhase = 0;
 let entityId = 1;
 let screenShake = 0;
 let flashAlpha = 0;
-let backgroundSeed = [];
+let selectedScale = 0;
+let currentScale = 1;
+let animationFrame = 0;
 
 let player;
 let enemies = [];
@@ -57,6 +67,144 @@ let particles = [];
 let numbers = [];
 let hazards = [];
 let beams = [];
+let backgroundSeed = [];
+const camera = { x: 0, y: 0 };
+
+const PALETTE = {
+  void: '#090611',
+  groundA: '#100b1d',
+  groundB: '#151025',
+  grid: '#251b3b',
+  ink: '#f6f4ff',
+  muted: '#7d7197',
+  violet: '#9f7aea',
+  violetLight: '#c4a7ff',
+  cyan: '#79e6ff',
+  cyanDark: '#24728d',
+  gold: '#ffd166',
+  red: '#ff6b8a',
+  redDark: '#7d274a',
+  green: '#71e6a2',
+  shadow: '#05030a',
+};
+
+const SPRITES = {
+  astrologer: [
+    '....vv....',
+    '...vvvv...',
+    '..vvvvvv..',
+    '..vffffv..',
+    '..fcffcf..',
+    '...ffff...',
+    '..VVVVVV..',
+    '.VVVVVVVV.',
+    '.VVVVVVVV.',
+    '..VVVVVV..',
+    '..VV..VV..',
+    '.VV....VV.',
+  ],
+  warden: [
+    '...gggg...',
+    '..gggggg..',
+    '..gffffg..',
+    '..fkffkf..',
+    '..gffffg..',
+    '.GGGkkGGG.',
+    '.GGGkkGGG.',
+    'GGGGkkGGGG',
+    'GGGGkkGGGG',
+    '.GGGkkGGG.',
+    '.GG....GG.',
+    'GG......GG',
+  ],
+  ranger: [
+    '....cc....',
+    '...cccc...',
+    '..cffffc..',
+    '..fcffcf..',
+    '...ffff...',
+    '..dddddd..',
+    '.dddddddd.',
+    '.ddccccdd.',
+    '..dddddd..',
+    '..dd..dd..',
+    '.dd....dd.',
+    'dd......dd',
+  ],
+  wisp: [
+    '..rrrr..',
+    '.rrrrrr.',
+    'rrrddrrr',
+    'rrrddrrr',
+    '.rrrrrr.',
+    '.rr..rr.',
+    'rr....rr',
+    'r......r',
+  ],
+  bat: [
+    'c......c',
+    'cc....cc',
+    'ccc..ccc',
+    '.cccccc.',
+    '..crrc..',
+    '..cccc..',
+    '.cc..cc.',
+  ],
+  brute: [
+    '..rrrrrr..',
+    '.rrkkkkrr.',
+    '.rrkkkkrr.',
+    'rrrrrrrrrr',
+    'rrrddddrrr',
+    'rrrrrrrrrr',
+    'rrrrrrrrrr',
+    'rrr....rrr',
+    'rr......rr',
+  ],
+  seer: [
+    '....r....',
+    '...rrr...',
+    '..rrrrr..',
+    '..rrkrr..',
+    '.rrrrrrr.',
+    '.rrr.rrr.',
+    'rrr...rrr',
+    'rr.....rr',
+  ],
+  boss: [
+    'rr......rr',
+    'rrr....rrr',
+    '.rrrrrrrr.',
+    'rrrrrrrrrr',
+    'rrrkkkkrrr',
+    'rrrrrrrrrr',
+    'rrrrddddrr',
+    'rrrrrrrrrr',
+    '.rrrrrrrr.',
+    'rrr....rrr',
+    'rr......rr',
+  ],
+};
+
+const SPRITE_COLORS = {
+  v: '#51357f', V: '#a98cff', f: '#f2d5c4', c: '#79e6ff',
+  g: '#74698e', G: '#9b8cbd', k: '#ffd166', d: '#34244e',
+  r: '#d95779', R: '#ff8da8',
+};
+
+const DIGITS = {
+  '0': ['111', '101', '101', '101', '111'],
+  '1': ['010', '110', '010', '010', '111'],
+  '2': ['111', '001', '111', '100', '111'],
+  '3': ['111', '001', '111', '001', '111'],
+  '4': ['101', '101', '111', '001', '001'],
+  '5': ['111', '100', '111', '001', '111'],
+  '6': ['111', '100', '111', '101', '111'],
+  '7': ['111', '001', '010', '010', '010'],
+  '8': ['111', '101', '111', '101', '111'],
+  '9': ['111', '101', '111', '001', '111'],
+  '-': ['000', '000', '111', '000', '000'],
+};
 
 class SoundEngine {
   constructor() {
@@ -70,7 +218,7 @@ class SoundEngine {
     if (AudioCtx) this.context = new AudioCtx();
   }
 
-  tone(frequency, duration, type = 'sine', volume = 0.035, slide = 0) {
+  tone(frequency, duration, type = 'square', volume = 0.025, slide = 0) {
     if (!this.enabled) return;
     this.init();
     if (!this.context) return;
@@ -87,29 +235,63 @@ class SoundEngine {
     oscillator.stop(now + duration);
   }
 
-  shoot() { this.tone(360, 0.05, 'triangle', 0.018, 95); }
-  hit() { this.tone(115, 0.04, 'square', 0.018, -35); }
-  pickup() { this.tone(620, 0.07, 'sine', 0.018, 170); }
-  level() { this.tone(440, 0.15, 'triangle', 0.03, 430); }
-  dash() { this.tone(150, 0.12, 'sawtooth', 0.025, 260); }
-  nova() { this.tone(90, 0.38, 'sawtooth', 0.05, 440); }
-  boss() { this.tone(62, 0.65, 'square', 0.045, -10); }
+  shoot() { this.tone(360, 0.04, 'square', 0.014, 80); }
+  hit() { this.tone(100, 0.035, 'square', 0.014, -25); }
+  pickup() { this.tone(620, 0.06, 'square', 0.014, 150); }
+  level() { this.tone(420, 0.14, 'square', 0.025, 360); }
+  dash() { this.tone(145, 0.1, 'sawtooth', 0.02, 210); }
+  nova() { this.tone(90, 0.32, 'square', 0.04, 380); }
+  boss() { this.tone(58, 0.55, 'square', 0.04, -8); }
 }
 
 const sound = new SoundEngine();
 
 const heroStats = {
-  astrologer: { maxHp: 92, speed: 220, damage: 1.22, cooldown: 0.84, armor: 0, crit: 0.06, dashCooldown: 2.5, boltLevel: 2 },
-  warden: { maxHp: 148, speed: 194, damage: 0.98, cooldown: 1, armor: 5, crit: 0.03, dashCooldown: 3.1, boltLevel: 1 },
-  ranger: { maxHp: 104, speed: 258, damage: 1, cooldown: 0.93, armor: 1, crit: 0.18, dashCooldown: 1.85, boltLevel: 1 },
+  astrologer: { maxHp: 92, speed: 118, damage: 1.22, cooldown: 0.84, armor: 0, crit: 0.06, dashCooldown: 2.5, boltLevel: 2 },
+  warden: { maxHp: 148, speed: 104, damage: 0.98, cooldown: 1, armor: 5, crit: 0.03, dashCooldown: 3.1, boltLevel: 1 },
+  ranger: { maxHp: 104, speed: 138, damage: 1, cooldown: 0.93, armor: 1, crit: 0.18, dashCooldown: 1.85, boltLevel: 1 },
 };
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function screenX(worldX) {
+  return Math.round(worldX - camera.x);
+}
+
+function screenY(worldY) {
+  return Math.round(worldY - camera.y);
+}
+
+function isVisible(x, y, margin = 40) {
+  return x >= camera.x - margin && x <= camera.x + VIEW_WIDTH + margin && y >= camera.y - margin && y <= camera.y + VIEW_HEIGHT + margin;
+}
+
+function resizePixelCanvas() {
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  const availableCssPixels = Math.max(320, window.innerWidth - 28);
+  const availablePhysicalPixels = availableCssPixels * dpr;
+  const automatic = clamp(Math.floor(availablePhysicalPixels / VIEW_WIDTH), 1, 4);
+  currentScale = selectedScale || automatic;
+  const cssScale = currentScale / dpr;
+  canvas.style.width = `${VIEW_WIDTH * cssScale}px`;
+  canvas.style.height = `${VIEW_HEIGHT * cssScale}px`;
+  ui.scaleButton.textContent = `物理像素：${selectedScale ? `${currentScale}×` : `自动 ${currentScale}×`}`;
+  ui.renderValue.textContent = `${VIEW_WIDTH}×${VIEW_HEIGHT} · 每格 ${currentScale} 物理像素`;
+}
+
+function cycleScale() {
+  selectedScale = selectedScale === 0 ? 1 : selectedScale === 1 ? 2 : selectedScale === 2 ? 3 : selectedScale === 3 ? 4 : 0;
+  resizePixelCanvas();
+}
 
 function resetGame() {
   const stats = heroStats[selectedHero];
   player = {
     x: WORLD_WIDTH / 2,
     y: WORLD_HEIGHT / 2,
-    radius: 15,
+    radius: 8,
     maxHp: stats.maxHp,
     hp: stats.maxHp,
     speed: stats.speed,
@@ -129,7 +311,7 @@ function resetGame() {
     kills: 0,
     nova: 0,
     novaTime: 0,
-    magnet: 82,
+    magnet: 48,
     regen: 0.25,
     weapons: {
       bolt: { level: stats.boltLevel, timer: 0, evolved: false },
@@ -157,11 +339,13 @@ function resetGame() {
   flashAlpha = 0;
   paused = false;
   choosing = false;
+  camera.x = Math.round(player.x - VIEW_WIDTH / 2);
+  camera.y = Math.round(player.y - VIEW_HEIGHT / 2);
   createBackground();
   hideOverlay(ui.upgradeScreen);
   hideOverlay(ui.gameOverScreen);
   ui.pauseButton.textContent = '暂停';
-  ui.statusMessage.textContent = '星火已点燃。';
+  ui.statusMessage.textContent = '星火已点燃。大地图会随角色移动。';
   updateUi();
   render();
 }
@@ -169,13 +353,12 @@ function resetGame() {
 function createBackground() {
   backgroundSeed = [];
   const types = ['star', 'stone', 'grass', 'crystal'];
-  for (let i = 0; i < 92; i += 1) {
+  for (let i = 0; i < 620; i += 1) {
     backgroundSeed.push({
-      x: Math.random() * WORLD_WIDTH,
-      y: Math.random() * WORLD_HEIGHT,
+      x: Math.floor(Math.random() * WORLD_WIDTH),
+      y: Math.floor(Math.random() * WORLD_HEIGHT),
       type: types[Math.floor(Math.random() * types.length)],
-      size: 1 + Math.random() * 3,
-      rotation: Math.random() * TAU,
+      size: 1 + Math.floor(Math.random() * 3),
     });
   }
 }
@@ -190,22 +373,50 @@ function startGame() {
   hideOverlay(ui.startScreen);
   running = true;
   lastFrame = performance.now();
-  requestAnimationFrame(loop);
+  cancelAnimationFrame(animationFrame);
+  animationFrame = requestAnimationFrame(loop);
 }
 
 function endGame() {
   running = false;
-  ui.gameOverStats.textContent = `生存 ${Math.floor(elapsed)} 秒，达到 ${player.level} 级，击败 ${player.kills} 名夜行者。`;
+  ui.gameOverStats.textContent = `生存 ${Math.floor(elapsed)} 秒，探索大地图并达到 ${player.level} 级，击败 ${player.kills} 名夜行者。`;
   showOverlay(ui.gameOverScreen);
 }
 
+function updateCamera() {
+  const leftEdge = camera.x + 230;
+  const rightEdge = camera.x + 410;
+  const topEdge = camera.y + 125;
+  const bottomEdge = camera.y + 235;
+
+  if (player.x < leftEdge) camera.x = Math.floor(player.x - 230);
+  else if (player.x > rightEdge) camera.x = Math.floor(player.x - 410);
+  if (player.y < topEdge) camera.y = Math.floor(player.y - 125);
+  else if (player.y > bottomEdge) camera.y = Math.floor(player.y - 235);
+
+  camera.x = clamp(camera.x, 0, WORLD_WIDTH - VIEW_WIDTH);
+  camera.y = clamp(camera.y, 0, WORLD_HEIGHT - VIEW_HEIGHT);
+}
+
 function spawnPoint() {
-  const margin = 42;
+  const margin = 34;
   const edge = Math.floor(Math.random() * 4);
-  if (edge === 0) return [Math.random() * WORLD_WIDTH, -margin];
-  if (edge === 1) return [WORLD_WIDTH + margin, Math.random() * WORLD_HEIGHT];
-  if (edge === 2) return [Math.random() * WORLD_WIDTH, WORLD_HEIGHT + margin];
-  return [-margin, Math.random() * WORLD_HEIGHT];
+  let x;
+  let y;
+  if (edge === 0) {
+    x = camera.x + Math.random() * VIEW_WIDTH;
+    y = camera.y - margin;
+  } else if (edge === 1) {
+    x = camera.x + VIEW_WIDTH + margin;
+    y = camera.y + Math.random() * VIEW_HEIGHT;
+  } else if (edge === 2) {
+    x = camera.x + Math.random() * VIEW_WIDTH;
+    y = camera.y + VIEW_HEIGHT + margin;
+  } else {
+    x = camera.x - margin;
+    y = camera.y + Math.random() * VIEW_HEIGHT;
+  }
+  return [clamp(x, 12, WORLD_WIDTH - 12), clamp(y, 12, WORLD_HEIGHT - 12)];
 }
 
 function spawnEnemy(type = null, elite = false) {
@@ -219,19 +430,19 @@ function spawnEnemy(type = null, elite = false) {
   }
 
   const config = {
-    wisp: { radius: 12, hp: 32, speed: 60, damage: 14, xp: 5 },
-    bat: { radius: 10, hp: 22, speed: 108, damage: 10, xp: 4 },
-    brute: { radius: 21, hp: 118, speed: 38, damage: 23, xp: 12 },
-    seer: { radius: 15, hp: 65, speed: 43, damage: 14, xp: 9 },
-    boss: { radius: 42, hp: 980 + phase * 650, speed: 30, damage: 34, xp: 120 },
+    wisp: { radius: 6, hp: 32, speed: 34, damage: 14, xp: 5 },
+    bat: { radius: 5, hp: 22, speed: 60, damage: 10, xp: 4 },
+    brute: { radius: 11, hp: 118, speed: 22, damage: 23, xp: 12 },
+    seer: { radius: 8, hp: 65, speed: 25, damage: 14, xp: 9 },
+    boss: { radius: 22, hp: 980 + phase * 650, speed: 18, damage: 34, xp: 120 },
   }[type];
 
-  const scale = (1 + elapsed / 95) * (elite ? 2.1 : 1) * difficulty;
+  const power = (1 + elapsed / 95) * (elite ? 2.1 : 1) * difficulty;
   enemies.push({
     id: entityId++, x, y, type, elite,
-    radius: config.radius * (elite ? 1.14 : 1),
-    hp: config.hp * scale,
-    maxHp: config.hp * scale,
+    radius: config.radius * (elite ? 1.15 : 1),
+    hp: config.hp * power,
+    maxHp: config.hp * power,
     speed: config.speed * Math.sqrt(difficulty),
     damage: config.damage * difficulty,
     xp: config.xp * (elite ? 4 : 1),
@@ -250,7 +461,7 @@ function spawnBoss() {
   ui.bossBanner.classList.add('show');
   ui.statusMessage.textContent = '首领降临：击败它将获得稀有遗物。';
   sound.boss();
-  screenShake = 14;
+  screenShake = 8;
 }
 
 function nearestEnemy(x = player.x, y = player.y, skipped = new Set()) {
@@ -267,7 +478,7 @@ function nearestEnemy(x = player.x, y = player.y, skipped = new Set()) {
   return target;
 }
 
-function createParticle(x, y, color, count = 8, speed = 110, life = 0.45) {
+function createParticle(x, y, color, count = 8, speed = 60, life = 0.45) {
   for (let i = 0; i < count; i += 1) {
     const angle = Math.random() * TAU;
     const velocity = speed * (0.35 + Math.random() * 0.75);
@@ -278,18 +489,19 @@ function createParticle(x, y, color, count = 8, speed = 110, life = 0.45) {
       color,
       life: life * (0.7 + Math.random() * 0.6),
       maxLife: life,
-      size: 1 + Math.random() * 3,
+      size: 1 + Math.floor(Math.random() * 2),
     });
   }
 }
 
 function damageEnemy(enemy, rawDamage) {
+  if (!enemies.includes(enemy)) return false;
   const critical = Math.random() < player.crit;
   const damage = rawDamage * (critical ? 1.9 : 1);
   enemy.hp -= damage;
   enemy.hitFlash = 0.08;
-  numbers.push({ x: enemy.x, y: enemy.y - enemy.radius, value: Math.round(damage), critical, life: 0.55 });
-  createParticle(enemy.x, enemy.y, critical ? '#ffd166' : '#bda8ff', critical ? 12 : 6, 95);
+  numbers.push({ x: enemy.x, y: enemy.y - enemy.radius - 4, value: Math.round(damage), critical, life: 0.55 });
+  createParticle(enemy.x, enemy.y, critical ? PALETTE.gold : PALETTE.violetLight, critical ? 10 : 5, 52);
   sound.hit();
 
   if (enemy.hp > 0) return false;
@@ -299,15 +511,15 @@ function damageEnemy(enemy, rawDamage) {
   const gemCount = enemy.elite ? 8 : enemy.type === 'brute' ? 3 : 1;
   for (let i = 0; i < gemCount; i += 1) {
     gems.push({
-      x: enemy.x + (Math.random() - 0.5) * 22,
-      y: enemy.y + (Math.random() - 0.5) * 22,
+      x: enemy.x + (Math.random() - 0.5) * 14,
+      y: enemy.y + (Math.random() - 0.5) * 14,
       value: enemy.xp / gemCount,
-      radius: enemy.elite ? 6 : 4,
+      radius: enemy.elite ? 4 : 3,
       phase: Math.random() * TAU,
     });
   }
-  createParticle(enemy.x, enemy.y, enemy.elite ? '#ffd166' : '#ff668a', enemy.elite ? 34 : 15, enemy.elite ? 190 : 130, 0.7);
-  screenShake = Math.max(screenShake, enemy.elite ? 15 : 3);
+  createParticle(enemy.x, enemy.y, enemy.elite ? PALETTE.gold : PALETTE.red, enemy.elite ? 24 : 12, enemy.elite ? 105 : 72, 0.7);
+  screenShake = Math.max(screenShake, enemy.elite ? 8 : 2);
   if (enemy.elite) grantRandomRelic();
   enemies.splice(enemies.indexOf(enemy), 1);
   return true;
@@ -336,13 +548,13 @@ function shootBolt(dt) {
       kind: 'player',
       x: player.x,
       y: player.y,
-      vx: Math.cos(shotAngle) * (475 + weapon.level * 18),
-      vy: Math.sin(shotAngle) * (475 + weapon.level * 18),
-      radius: weapon.evolved ? 9 : 6,
+      vx: Math.cos(shotAngle) * (255 + weapon.level * 10),
+      vy: Math.sin(shotAngle) * (255 + weapon.level * 10),
+      radius: weapon.evolved ? 4 : 3,
       damage: (18 + weapon.level * 8) * player.damageMultiplier * (player.novaTime ? 1.35 : 1),
       pierce: Math.floor(weapon.level / 3) + (weapon.evolved ? 3 : 0),
       life: 2.1,
-      color: weapon.evolved ? '#79e6ff' : '#bda8ff',
+      color: weapon.evolved ? PALETTE.cyan : PALETTE.violetLight,
       trail: [],
     });
   }
@@ -358,7 +570,7 @@ function updateOrbit(dt) {
   if (weapon.timer > 0) return;
 
   const count = Math.min(7, weapon.level + 1);
-  const radius = 58 + weapon.level * 5;
+  const radius = 32 + weapon.level * 3;
   const hitEnemies = new Set();
   for (let i = 0; i < count; i += 1) {
     const angle = weapon.angle + i * TAU / count;
@@ -366,7 +578,7 @@ function updateOrbit(dt) {
     const bladeY = player.y + Math.sin(angle) * radius;
     for (const enemy of [...enemies]) {
       if (hitEnemies.has(enemy.id)) continue;
-      if (Math.hypot(enemy.x - bladeX, enemy.y - bladeY) < enemy.radius + 11) {
+      if (Math.hypot(enemy.x - bladeX, enemy.y - bladeY) < enemy.radius + 6) {
         hitEnemies.add(enemy.id);
         damageEnemy(enemy, (8 + weapon.level * 5) * player.damageMultiplier);
         if (weapon.evolved) player.hp = Math.min(player.maxHp, player.hp + 0.8);
@@ -381,11 +593,11 @@ function updateAura(dt) {
   if (!weapon.level) return;
   weapon.timer -= dt;
   if (weapon.timer > 0) return;
-  const radius = 76 + weapon.level * 14;
+  const radius = 42 + weapon.level * 8;
   for (const enemy of [...enemies]) {
     if (Math.hypot(enemy.x - player.x, enemy.y - player.y) < radius + enemy.radius) {
       damageEnemy(enemy, (6 + weapon.level * 4) * player.damageMultiplier);
-      enemy.speed = Math.max(16, enemy.speed * (weapon.evolved ? 0.9 : 0.97));
+      enemy.speed = Math.max(10, enemy.speed * (weapon.evolved ? 0.9 : 0.97));
     }
   }
   weapon.timer = 0.42;
@@ -465,7 +677,7 @@ function grantRandomRelic() {
   const relic = relics[Math.floor(Math.random() * relics.length)];
   relic.apply();
   checkEvolution();
-  ui.statusMessage.textContent = `首领战利品：${relic.name}`;
+  ui.statusMessage.textContent = `精英战利品：${relic.name}`;
 }
 
 function gainXp(value) {
@@ -482,7 +694,7 @@ function hurtPlayer(amount) {
   player.hp -= Math.max(1, amount - player.armor);
   player.invulnerable = 0.18;
   flashAlpha = 0.16;
-  screenShake = Math.max(screenShake, 4);
+  screenShake = Math.max(screenShake, 3);
 }
 
 function dash() {
@@ -497,7 +709,7 @@ function dash() {
   player.dashTime = 0.18;
   player.invulnerable = 0.32;
   player.dashCooldown = player.dashCooldownBase;
-  createParticle(player.x, player.y, '#79e6ff', 18, 180, 0.35);
+  createParticle(player.x, player.y, PALETTE.cyan, 14, 95, 0.35);
   sound.dash();
 }
 
@@ -506,13 +718,11 @@ function nova() {
   player.nova = 0;
   player.novaTime = 6;
   flashAlpha = 0.3;
-  screenShake = 13;
+  screenShake = 7;
   for (const enemy of [...enemies]) {
-    const distance = Math.hypot(enemy.x - player.x, enemy.y - player.y);
-    if (distance < 270) damageEnemy(enemy, 45 * player.damageMultiplier * (1 - distance / 540));
+    if (Math.hypot(enemy.x - player.x, enemy.y - player.y) < 150) damageEnemy(enemy, 45 * player.damageMultiplier);
   }
-  createParticle(player.x, player.y, '#79e6ff', 56, 310, 0.85);
-  ui.statusMessage.textContent = '星爆释放：六秒内伤害、攻速与移动速度提高。';
+  createParticle(player.x, player.y, PALETTE.cyan, 54, 160, 0.8);
   sound.nova();
 }
 
@@ -537,14 +747,15 @@ function update(dt) {
     player.facingX = moveX / moveLength;
     player.facingY = moveY / moveLength;
   }
-  const movementSpeed = player.dashTime ? 760 : player.speed * (player.novaTime ? 1.3 : 1);
+  const movementSpeed = player.dashTime ? 410 : player.speed * (player.novaTime ? 1.3 : 1);
   player.x += (player.dashTime ? player.facingX : moveX / moveLength) * movementSpeed * dt;
   player.y += (player.dashTime ? player.facingY : moveY / moveLength) * movementSpeed * dt;
-  player.x = Math.max(player.radius, Math.min(WORLD_WIDTH - player.radius, player.x));
-  player.y = Math.max(player.radius, Math.min(WORLD_HEIGHT - player.radius, player.y));
+  player.x = clamp(player.x, player.radius, WORLD_WIDTH - player.radius);
+  player.y = clamp(player.y, player.radius, WORLD_HEIGHT - player.radius);
+  updateCamera();
 
   if (player.dashTime) {
-    particles.push({ x: player.x, y: player.y, vx: 0, vy: 0, color: '#9f7aea', life: 0.22, maxLife: 0.22, size: 13, ghost: true });
+    particles.push({ x: player.x, y: player.y, vx: 0, vy: 0, color: PALETTE.violet, life: 0.22, maxLife: 0.22, size: 7, ghost: true });
   }
 
   spawnClock -= dt;
@@ -556,7 +767,15 @@ function update(dt) {
 
   hazardClock -= dt;
   if (hazardClock <= 0) {
-    if (phase > 0) hazards.push({ x: 75 + Math.random() * 810, y: 65 + Math.random() * 410, radius: 50 + phase * 7, timer: 1.55, exploded: false });
+    if (phase > 0) {
+      hazards.push({
+        x: clamp(player.x + (Math.random() - 0.5) * 440, 35, WORLD_WIDTH - 35),
+        y: clamp(player.y + (Math.random() - 0.5) * 240, 35, WORLD_HEIGHT - 35),
+        radius: 28 + phase * 4,
+        timer: 1.55,
+        exploded: false,
+      });
+    }
     hazardClock = Math.max(4.2, 8 - phase);
   }
 
@@ -574,8 +793,8 @@ function update(dt) {
 function updateProjectiles(dt) {
   for (let i = projectiles.length - 1; i >= 0; i -= 1) {
     const projectile = projectiles[i];
-    projectile.trail?.push({ x: projectile.x, y: projectile.y, life: 0.16 });
-    if (projectile.trail?.length > 8) projectile.trail.shift();
+    projectile.trail?.push({ x: projectile.x, y: projectile.y });
+    if (projectile.trail?.length > 6) projectile.trail.shift();
     projectile.x += projectile.vx * dt;
     projectile.y += projectile.vy * dt;
     projectile.life -= dt;
@@ -597,7 +816,7 @@ function updateProjectiles(dt) {
       }
     }
 
-    if (remove || projectile.x < -60 || projectile.x > WORLD_WIDTH + 60 || projectile.y < -60 || projectile.y > WORLD_HEIGHT + 60) {
+    if (remove || projectile.x < -80 || projectile.x > WORLD_WIDTH + 80 || projectile.y < -80 || projectile.y > WORLD_HEIGHT + 80) {
       projectiles.splice(i, 1);
     }
   }
@@ -612,7 +831,12 @@ function updateEnemies(dt) {
     enemy.attackClock -= dt;
 
     if (enemy.type === 'seer' && enemy.attackClock <= 0) {
-      projectiles.push({ kind: 'enemy', x: enemy.x, y: enemy.y, vx: Math.cos(angle) * 175, vy: Math.sin(angle) * 175, radius: 7, damage: enemy.damage, life: 4, color: '#ff6b8a', trail: [] });
+      projectiles.push({
+        kind: 'enemy', x: enemy.x, y: enemy.y,
+        vx: Math.cos(angle) * 95, vy: Math.sin(angle) * 95,
+        radius: 4, damage: enemy.damage, life: 5,
+        color: PALETTE.red, trail: [],
+      });
       enemy.attackClock = 2.05;
     } else {
       enemy.x += Math.cos(angle) * enemy.speed * dt;
@@ -634,11 +858,11 @@ function updateGems(dt) {
     const dy = player.y - gem.y;
     const distance = Math.hypot(dx, dy);
     if (distance < player.magnet && distance > 0) {
-      const speed = 190 + (player.magnet - distance) * 4;
+      const speed = 105 + (player.magnet - distance) * 4;
       gem.x += dx / distance * speed * dt;
       gem.y += dy / distance * speed * dt;
     }
-    if (distance < player.radius + gem.radius + 5) {
+    if (distance < player.radius + gem.radius + 3) {
       gainXp(gem.value);
       sound.pickup();
       gems.splice(i, 1);
@@ -651,13 +875,13 @@ function updateEffects(dt) {
     const particle = particles[i];
     particle.x += particle.vx * dt;
     particle.y += particle.vy * dt;
-    particle.vx *= 0.95;
-    particle.vy *= 0.95;
+    particle.vx *= 0.94;
+    particle.vy *= 0.94;
     particle.life -= dt;
     if (particle.life <= 0) particles.splice(i, 1);
   }
   for (let i = numbers.length - 1; i >= 0; i -= 1) {
-    numbers[i].y -= 28 * dt;
+    numbers[i].y -= 16 * dt;
     numbers[i].life -= dt;
     if (numbers[i].life <= 0) numbers.splice(i, 1);
   }
@@ -665,7 +889,7 @@ function updateEffects(dt) {
     beams[i].life -= dt;
     if (beams[i].life <= 0) beams.splice(i, 1);
   }
-  screenShake = Math.max(0, screenShake - dt * 30);
+  screenShake = Math.max(0, screenShake - dt * 25);
   flashAlpha = Math.max(0, flashAlpha - dt * 1.7);
 }
 
@@ -677,184 +901,184 @@ function updateHazards(dt) {
       hazard.exploded = true;
       hazard.timer = 0.28;
       if (Math.hypot(player.x - hazard.x, player.y - hazard.y) < hazard.radius) hurtPlayer(22 + phase * 8);
-      createParticle(hazard.x, hazard.y, '#ff6b8a', 30, 180, 0.6);
+      createParticle(hazard.x, hazard.y, PALETTE.red, 24, 95, 0.6);
     } else if (hazard.exploded && hazard.timer <= 0) hazards.splice(i, 1);
   }
 }
 
+function drawPixelSprite(pattern, x, y, palette = SPRITE_COLORS, scale = 1, flash = false) {
+  const width = pattern[0].length * scale;
+  const height = pattern.length * scale;
+  const startX = Math.round(x - width / 2);
+  const startY = Math.round(y - height / 2);
+  for (let row = 0; row < pattern.length; row += 1) {
+    for (let col = 0; col < pattern[row].length; col += 1) {
+      const key = pattern[row][col];
+      if (key === '.') continue;
+      ctx.fillStyle = flash ? PALETTE.ink : (palette[key] || PALETTE.ink);
+      ctx.fillRect(startX + col * scale, startY + row * scale, scale, scale);
+    }
+  }
+}
+
+function drawPixelLine(x0, y0, x1, y1, color, thickness = 1) {
+  x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1);
+  const dx = Math.abs(x1 - x0);
+  const sx = x0 < x1 ? 1 : -1;
+  const dy = -Math.abs(y1 - y0);
+  const sy = y0 < y1 ? 1 : -1;
+  let error = dx + dy;
+  ctx.fillStyle = color;
+  while (true) {
+    ctx.fillRect(x0 - Math.floor(thickness / 2), y0 - Math.floor(thickness / 2), thickness, thickness);
+    if (x0 === x1 && y0 === y1) break;
+    const e2 = 2 * error;
+    if (e2 >= dy) { error += dy; x0 += sx; }
+    if (e2 <= dx) { error += dx; y0 += sy; }
+  }
+}
+
+function drawPixelRing(cx, cy, radius, color, spacing = 3, size = 1) {
+  ctx.fillStyle = color;
+  const circumference = Math.max(12, Math.floor(radius * 2.8));
+  for (let i = 0; i < circumference; i += spacing) {
+    const angle = i / circumference * TAU;
+    ctx.fillRect(Math.round(cx + Math.cos(angle) * radius), Math.round(cy + Math.sin(angle) * radius), size, size);
+  }
+}
+
+function drawBitmapNumber(value, x, y, color, scale = 1) {
+  const text = String(value);
+  const width = text.length * 4 * scale - scale;
+  let cursor = Math.round(x - width / 2);
+  ctx.fillStyle = color;
+  for (const char of text) {
+    const glyph = DIGITS[char];
+    if (!glyph) { cursor += 4 * scale; continue; }
+    for (let row = 0; row < glyph.length; row += 1) {
+      for (let col = 0; col < glyph[row].length; col += 1) {
+        if (glyph[row][col] === '1') ctx.fillRect(cursor + col * scale, Math.round(y) + row * scale, scale, scale);
+      }
+    }
+    cursor += 4 * scale;
+  }
+}
+
 function drawBackground() {
-  const gradient = ctx.createLinearGradient(0, 0, 0, WORLD_HEIGHT);
-  gradient.addColorStop(0, '#171027');
-  gradient.addColorStop(1, '#0c0914');
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+  ctx.fillStyle = PALETTE.groundA;
+  ctx.fillRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
 
-  ctx.strokeStyle = 'rgba(160,135,211,.055)';
-  ctx.lineWidth = 1;
-  const gridSize = 48;
-  const offsetX = (elapsed * 6) % gridSize;
-  const offsetY = (elapsed * 3) % gridSize;
-  for (let x = -gridSize + offsetX; x < WORLD_WIDTH + gridSize; x += gridSize) {
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, WORLD_HEIGHT); ctx.stroke();
+  const tile = 32;
+  const startX = -((camera.x % tile + tile) % tile);
+  const startY = -((camera.y % tile + tile) % tile);
+  for (let y = startY; y < VIEW_HEIGHT; y += tile) {
+    for (let x = startX; x < VIEW_WIDTH; x += tile) {
+      const gx = Math.floor((x + camera.x) / tile);
+      const gy = Math.floor((y + camera.y) / tile);
+      ctx.fillStyle = (gx + gy) % 2 ? PALETTE.groundA : PALETTE.groundB;
+      ctx.fillRect(x, y, tile, tile);
+      ctx.fillStyle = PALETTE.grid;
+      ctx.fillRect(x, y, tile, 1);
+      ctx.fillRect(x, y, 1, tile);
+    }
   }
-  for (let y = -gridSize + offsetY; y < WORLD_HEIGHT + gridSize; y += gridSize) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(WORLD_WIDTH, y); ctx.stroke();
+
+  for (const decoration of backgroundSeed) {
+    if (!isVisible(decoration.x, decoration.y, 8)) continue;
+    drawDecoration(decoration);
   }
 
-  for (const decoration of backgroundSeed) drawDecoration(decoration);
-
-  const vignette = ctx.createRadialGradient(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 120, WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 580);
-  vignette.addColorStop(0, 'rgba(0,0,0,0)');
-  vignette.addColorStop(1, 'rgba(0,0,0,.58)');
-  ctx.fillStyle = vignette;
-  ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+  ctx.fillStyle = 'rgba(3,2,8,.38)';
+  ctx.fillRect(0, 0, VIEW_WIDTH, 8);
+  ctx.fillRect(0, VIEW_HEIGHT - 8, VIEW_WIDTH, 8);
+  ctx.fillRect(0, 0, 8, VIEW_HEIGHT);
+  ctx.fillRect(VIEW_WIDTH - 8, 0, 8, VIEW_HEIGHT);
 }
 
 function drawDecoration(item) {
-  ctx.save();
-  ctx.translate(item.x, item.y);
-  ctx.rotate(item.rotation);
+  const x = screenX(item.x);
+  const y = screenY(item.y);
   if (item.type === 'star') {
-    ctx.fillStyle = 'rgba(121,230,255,.16)';
-    ctx.fillRect(-item.size, -1, item.size * 2, 2);
-    ctx.fillRect(-1, -item.size, 2, item.size * 2);
+    ctx.fillStyle = '#224657';
+    ctx.fillRect(x - item.size, y, item.size * 2 + 1, 1);
+    ctx.fillRect(x, y - item.size, 1, item.size * 2 + 1);
   } else if (item.type === 'stone') {
-    ctx.fillStyle = 'rgba(101,90,129,.16)';
-    ctx.fillRect(-item.size * 2, -item.size, item.size * 4, item.size * 2);
+    ctx.fillStyle = '#292239';
+    ctx.fillRect(x - item.size * 2, y - item.size, item.size * 4, item.size * 2);
+    ctx.fillStyle = '#3c3151';
+    ctx.fillRect(x - item.size, y - item.size, item.size * 2, 1);
   } else if (item.type === 'grass') {
-    ctx.strokeStyle = 'rgba(90,126,111,.18)';
-    ctx.beginPath(); ctx.moveTo(0, 2); ctx.lineTo(-3, -4); ctx.moveTo(0, 2); ctx.lineTo(2, -5); ctx.stroke();
+    ctx.fillStyle = '#243b36';
+    ctx.fillRect(x, y - 3, 1, 4);
+    ctx.fillRect(x - 2, y - 2, 2, 1);
+    ctx.fillRect(x + 1, y - 2, 2, 1);
   } else {
-    ctx.fillStyle = 'rgba(159,122,234,.13)';
-    ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(4, 2); ctx.lineTo(0, 5); ctx.lineTo(-4, 2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#3f2a61';
+    ctx.fillRect(x, y - 3, 1, 7);
+    ctx.fillRect(x - 2, y - 1, 5, 3);
+    ctx.fillStyle = '#7657a8';
+    ctx.fillRect(x, y - 2, 1, 3);
   }
-  ctx.restore();
 }
 
-function drawShadow(x, y, radius, alpha = 0.3) {
-  ctx.fillStyle = `rgba(0,0,0,${alpha})`;
-  ctx.beginPath();
-  ctx.ellipse(x, y + radius * 0.65, radius * 0.9, radius * 0.36, 0, 0, TAU);
-  ctx.fill();
+function drawShadow(worldX, worldY, radius, alpha = 0.45) {
+  const x = screenX(worldX);
+  const y = screenY(worldY + radius * 0.7);
+  ctx.fillStyle = `rgba(3,2,8,${alpha})`;
+  const width = Math.max(4, Math.round(radius * 1.7));
+  ctx.fillRect(Math.round(x - width / 2), y, width, 2);
+  if (width > 8) ctx.fillRect(Math.round(x - width / 3), y + 2, Math.round(width * 0.66), 1);
 }
 
 function drawPlayer() {
   const blink = player.invulnerable > 0 && Math.floor(elapsed * 24) % 2 === 0;
   if (blink) return;
-  drawShadow(player.x, player.y, player.radius, 0.42);
-
-  const aura = ctx.createRadialGradient(player.x, player.y, 2, player.x, player.y, 58);
-  aura.addColorStop(0, player.novaTime ? 'rgba(121,230,255,.32)' : 'rgba(159,122,234,.23)');
-  aura.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = aura;
-  ctx.beginPath(); ctx.arc(player.x, player.y, 58, 0, TAU); ctx.fill();
-
-  ctx.save();
-  ctx.translate(player.x, player.y);
-  const bob = Math.sin(elapsed * 7) * 1.5;
-  ctx.translate(0, bob);
-
-  if (selectedHero === 'warden') {
-    ctx.fillStyle = '#665a83';
-    ctx.fillRect(-12, -8, 24, 23);
-    ctx.fillStyle = '#9b8cbd';
-    ctx.fillRect(-10, -15, 20, 14);
-    ctx.fillStyle = '#ffd166';
-    ctx.fillRect(-2, -12, 4, 16);
-    ctx.fillStyle = '#2b203d';
-    ctx.fillRect(-7, -10, 4, 3); ctx.fillRect(3, -10, 4, 3);
-  } else if (selectedHero === 'ranger') {
-    ctx.fillStyle = '#34244e';
-    ctx.beginPath(); ctx.moveTo(0, -17); ctx.lineTo(13, 12); ctx.lineTo(-13, 12); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#79e6ff';
-    ctx.fillRect(-9, -8, 18, 3);
-    ctx.fillRect(7, -2, 11, 3);
-    ctx.fillStyle = '#f2d5c4';
-    ctx.fillRect(-5, -12, 10, 9);
-  } else {
-    ctx.fillStyle = '#51357f';
-    ctx.beginPath(); ctx.moveTo(0, -19); ctx.lineTo(15, 13); ctx.lineTo(-15, 13); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#a98cff';
-    ctx.fillRect(-11, -5, 22, 13);
-    ctx.fillStyle = '#f2d5c4';
-    ctx.fillRect(-5, -13, 10, 9);
-    ctx.fillStyle = '#79e6ff';
-    ctx.fillRect(-2, -10, 4, 4);
-  }
-  ctx.restore();
+  const x = screenX(player.x);
+  const y = screenY(player.y) + (Math.floor(elapsed * 7) % 2);
+  drawShadow(player.x, player.y, player.radius, 0.5);
+  if (player.novaTime) drawPixelRing(x, y, 17 + Math.floor(elapsed * 6) % 3, PALETTE.cyan, 2, 1);
+  else drawPixelRing(x, y, 15, '#4c376e', 4, 1);
+  drawPixelSprite(SPRITES[selectedHero], x, y - 2, SPRITE_COLORS, 1, false);
 }
 
 function drawEnemy(enemy) {
-  drawShadow(enemy.x, enemy.y, enemy.radius, enemy.type === 'boss' ? 0.55 : 0.35);
-  ctx.save();
-  ctx.translate(enemy.x, enemy.y + Math.sin(enemy.pulse) * (enemy.type === 'bat' ? 4 : 1.5));
-  const flash = enemy.hitFlash > 0;
-
-  if (enemy.elite) {
-    ctx.strokeStyle = '#ffd166';
-    ctx.lineWidth = 2;
-    ctx.globalAlpha = 0.7 + Math.sin(enemy.pulse * 2) * 0.2;
-    ctx.beginPath(); ctx.arc(0, 0, enemy.radius + 6, 0, TAU); ctx.stroke();
-    ctx.globalAlpha = 1;
-  }
-
-  if (enemy.type === 'wisp') {
-    ctx.fillStyle = flash ? '#fff' : '#d95779';
-    ctx.beginPath(); ctx.arc(0, -2, enemy.radius, 0, TAU); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(-enemy.radius, 2); ctx.lineTo(-5, enemy.radius + 8); ctx.lineTo(0, enemy.radius); ctx.lineTo(6, enemy.radius + 7); ctx.lineTo(enemy.radius, 2); ctx.fill();
-    ctx.fillStyle = '#241329'; ctx.fillRect(-6, -5, 3, 4); ctx.fillRect(3, -5, 3, 4);
-  } else if (enemy.type === 'bat') {
-    ctx.fillStyle = flash ? '#fff' : '#9382b4';
-    ctx.beginPath(); ctx.moveTo(0, -9); ctx.lineTo(18, -3); ctx.lineTo(10, 9); ctx.lineTo(2, 4); ctx.lineTo(-2, 4); ctx.lineTo(-10, 9); ctx.lineTo(-18, -3); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#ff668a'; ctx.fillRect(-5, -4, 3, 3); ctx.fillRect(2, -4, 3, 3);
-  } else if (enemy.type === 'brute') {
-    ctx.fillStyle = flash ? '#fff' : '#6f4c67';
-    ctx.fillRect(-enemy.radius, -enemy.radius + 4, enemy.radius * 2, enemy.radius * 2 - 4);
-    ctx.fillStyle = '#a46c7f';
-    ctx.fillRect(-15, -22, 30, 17);
-    ctx.fillStyle = '#ffd166'; ctx.fillRect(-9, -15, 5, 4); ctx.fillRect(4, -15, 5, 4);
-    ctx.fillStyle = '#342137'; ctx.fillRect(-24, -5, 7, 18); ctx.fillRect(17, -5, 7, 18);
-  } else if (enemy.type === 'seer') {
-    ctx.fillStyle = flash ? '#fff' : '#733c77';
-    ctx.beginPath(); ctx.moveTo(0, -20); ctx.lineTo(16, 16); ctx.lineTo(-16, 16); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#ff8da8'; ctx.beginPath(); ctx.arc(0, -7, 6, 0, TAU); ctx.fill();
-    ctx.fillStyle = '#2a1430'; ctx.beginPath(); ctx.arc(0, -7, 2, 0, TAU); ctx.fill();
-  } else {
-    ctx.fillStyle = flash ? '#fff' : '#aa416d';
-    ctx.beginPath(); ctx.arc(0, 0, enemy.radius, 0, TAU); ctx.fill();
-    ctx.fillStyle = '#56223e';
-    ctx.beginPath(); ctx.moveTo(-25, -25); ctx.lineTo(-12, -48); ctx.lineTo(-2, -24); ctx.moveTo(25, -25); ctx.lineTo(12, -48); ctx.lineTo(2, -24); ctx.fill();
-    ctx.fillStyle = '#ffd166'; ctx.fillRect(-15, -8, 8, 6); ctx.fillRect(7, -8, 8, 6);
-    ctx.fillStyle = '#311226'; ctx.fillRect(-18, 8, 36, 8);
-  }
+  if (!isVisible(enemy.x, enemy.y, 50)) return;
+  const x = screenX(enemy.x);
+  const bob = enemy.type === 'bat' ? (Math.floor(enemy.pulse * 2) % 3 - 1) * 2 : Math.floor(enemy.pulse) % 2;
+  const y = screenY(enemy.y) + bob;
+  drawShadow(enemy.x, enemy.y, enemy.radius, enemy.type === 'boss' ? 0.62 : 0.42);
+  if (enemy.elite) drawPixelRing(x, y, Math.round(enemy.radius + 6), PALETTE.gold, 2, 1);
+  const scale = enemy.type === 'boss' ? 2 : 1;
+  drawPixelSprite(SPRITES[enemy.type], x, y, SPRITE_COLORS, scale, enemy.hitFlash > 0);
 
   if (enemy.type === 'boss' || enemy.elite) {
-    const width = enemy.radius * 2.2;
-    ctx.fillStyle = 'rgba(0,0,0,.65)';
-    ctx.fillRect(-width / 2, enemy.radius + 9, width, 5);
-    ctx.fillStyle = enemy.type === 'boss' ? '#ff6b8a' : '#ffd166';
-    ctx.fillRect(-width / 2, enemy.radius + 9, width * Math.max(0, enemy.hp / enemy.maxHp), 5);
+    const width = Math.max(14, Math.round(enemy.radius * 2.3));
+    const barY = y + Math.round(enemy.radius) + 8;
+    ctx.fillStyle = PALETTE.shadow;
+    ctx.fillRect(x - Math.floor(width / 2), barY, width, 3);
+    ctx.fillStyle = enemy.type === 'boss' ? PALETTE.red : PALETTE.gold;
+    ctx.fillRect(x - Math.floor(width / 2), barY, Math.round(width * Math.max(0, enemy.hp / enemy.maxHp)), 2);
   }
-  ctx.restore();
 }
 
 function drawProjectiles() {
   for (const projectile of projectiles) {
+    if (!isVisible(projectile.x, projectile.y, 30)) continue;
     if (projectile.trail) {
       projectile.trail.forEach((point, index) => {
-        ctx.globalAlpha = (index + 1) / projectile.trail.length * 0.22;
+        const size = index >= projectile.trail.length - 2 ? 2 : 1;
         ctx.fillStyle = projectile.color;
-        ctx.beginPath(); ctx.arc(point.x, point.y, projectile.radius * 0.65, 0, TAU); ctx.fill();
+        ctx.globalAlpha = 0.18 + index / projectile.trail.length * 0.38;
+        ctx.fillRect(screenX(point.x), screenY(point.y), size, size);
       });
       ctx.globalAlpha = 1;
     }
-    const glow = ctx.createRadialGradient(projectile.x, projectile.y, 1, projectile.x, projectile.y, projectile.radius * 3.5);
-    glow.addColorStop(0, projectile.color);
-    glow.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = glow;
-    ctx.beginPath(); ctx.arc(projectile.x, projectile.y, projectile.radius * 3.5, 0, TAU); ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.beginPath(); ctx.arc(projectile.x, projectile.y, projectile.radius * 0.55, 0, TAU); ctx.fill();
+    const x = screenX(projectile.x);
+    const y = screenY(projectile.y);
+    ctx.fillStyle = projectile.kind === 'enemy' ? PALETTE.redDark : projectile.color;
+    ctx.fillRect(x - projectile.radius, y - projectile.radius, projectile.radius * 2 + 1, projectile.radius * 2 + 1);
+    ctx.fillStyle = PALETTE.ink;
+    ctx.fillRect(x, y, 1, 1);
   }
 }
 
@@ -862,80 +1086,102 @@ function drawOrbit() {
   const weapon = player.weapons.orbit;
   if (!weapon.level) return;
   const count = Math.min(7, weapon.level + 1);
-  const radius = 58 + weapon.level * 5;
+  const radius = 32 + weapon.level * 3;
   for (let i = 0; i < count; i += 1) {
     const angle = weapon.angle + i * TAU / count;
-    const x = player.x + Math.cos(angle) * radius;
-    const y = player.y + Math.sin(angle) * radius;
-    ctx.save(); ctx.translate(x, y); ctx.rotate(angle + Math.PI / 2);
-    ctx.fillStyle = weapon.evolved ? '#ff6b8a' : '#d8ccff';
-    ctx.beginPath(); ctx.moveTo(0, -12); ctx.lineTo(6, 4); ctx.lineTo(0, 10); ctx.lineTo(-6, 4); ctx.closePath(); ctx.fill();
-    ctx.restore();
+    const x = screenX(player.x + Math.cos(angle) * radius);
+    const y = screenY(player.y + Math.sin(angle) * radius);
+    ctx.fillStyle = weapon.evolved ? PALETTE.red : PALETTE.violetLight;
+    ctx.fillRect(x - 1, y - 4, 3, 9);
+    ctx.fillStyle = PALETTE.ink;
+    ctx.fillRect(x, y - 2, 1, 4);
   }
 }
 
 function drawAura() {
   const weapon = player.weapons.aura;
   if (!weapon.level) return;
-  const radius = 76 + weapon.level * 14;
-  const aura = ctx.createRadialGradient(player.x, player.y, 20, player.x, player.y, radius);
-  aura.addColorStop(0, weapon.evolved ? 'rgba(121,230,255,.12)' : 'rgba(159,122,234,.08)');
-  aura.addColorStop(0.78, weapon.evolved ? 'rgba(121,230,255,.08)' : 'rgba(159,122,234,.05)');
-  aura.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = aura;
-  ctx.beginPath(); ctx.arc(player.x, player.y, radius, 0, TAU); ctx.fill();
-  ctx.strokeStyle = weapon.evolved ? 'rgba(121,230,255,.28)' : 'rgba(196,167,255,.18)';
-  ctx.beginPath(); ctx.arc(player.x, player.y, radius * (0.86 + Math.sin(elapsed * 2) * 0.03), 0, TAU); ctx.stroke();
+  const radius = 42 + weapon.level * 8;
+  const x = screenX(player.x);
+  const y = screenY(player.y);
+  const color = weapon.evolved ? PALETTE.cyan : PALETTE.violet;
+  drawPixelRing(x, y, radius, color, 4, 1);
+  drawPixelRing(x, y, Math.round(radius * 0.72), color, 7, 1);
 }
 
 function drawEffects() {
   for (const hazard of hazards) {
-    ctx.fillStyle = hazard.exploded ? 'rgba(255,107,138,.34)' : 'rgba(255,107,138,.11)';
-    ctx.beginPath(); ctx.arc(hazard.x, hazard.y, hazard.radius, 0, TAU); ctx.fill();
-    ctx.strokeStyle = 'rgba(255,107,138,.72)';
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(hazard.x, hazard.y, hazard.radius * (0.75 + Math.sin(elapsed * 10) * 0.05), 0, TAU); ctx.stroke();
+    if (!isVisible(hazard.x, hazard.y, hazard.radius + 10)) continue;
+    const x = screenX(hazard.x);
+    const y = screenY(hazard.y);
+    const radius = Math.round(hazard.radius * (0.82 + (Math.floor(elapsed * 10) % 2) * 0.05));
+    drawPixelRing(x, y, radius, hazard.exploded ? PALETTE.ink : PALETTE.red, 2, hazard.exploded ? 3 : 1);
+    if (hazard.exploded) {
+      ctx.fillStyle = 'rgba(255,107,138,.28)';
+      ctx.fillRect(x - hazard.radius, y - hazard.radius, hazard.radius * 2, hazard.radius * 2);
+    }
   }
 
   for (const beam of beams) {
-    ctx.globalAlpha = Math.min(1, beam.life * 8);
-    ctx.strokeStyle = '#79e6ff';
-    ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(beam.x1, beam.y1); ctx.lineTo((beam.x1 + beam.x2) / 2 + Math.random() * 14 - 7, (beam.y1 + beam.y2) / 2 + Math.random() * 14 - 7); ctx.lineTo(beam.x2, beam.y2); ctx.stroke();
-    ctx.globalAlpha = 1;
+    const x1 = screenX(beam.x1);
+    const y1 = screenY(beam.y1);
+    const x2 = screenX(beam.x2);
+    const y2 = screenY(beam.y2);
+    const midX = Math.round((x1 + x2) / 2) + (Math.floor(elapsed * 60) % 5 - 2);
+    const midY = Math.round((y1 + y2) / 2) - (Math.floor(elapsed * 45) % 5 - 2);
+    drawPixelLine(x1, y1, midX, midY, PALETTE.cyan, 2);
+    drawPixelLine(midX, midY, x2, y2, PALETTE.ink, 1);
   }
 
   for (const gem of gems) {
-    ctx.save(); ctx.translate(gem.x, gem.y + Math.sin(gem.phase) * 2); ctx.rotate(gem.phase * 0.6);
-    ctx.fillStyle = '#79e6ff';
-    ctx.beginPath(); ctx.moveTo(0, -gem.radius); ctx.lineTo(gem.radius, 0); ctx.lineTo(0, gem.radius); ctx.lineTo(-gem.radius, 0); ctx.closePath(); ctx.fill();
-    ctx.restore();
+    if (!isVisible(gem.x, gem.y, 10)) continue;
+    const x = screenX(gem.x);
+    const y = screenY(gem.y) + (Math.floor(gem.phase * 2) % 3 - 1);
+    ctx.fillStyle = PALETTE.cyanDark;
+    ctx.fillRect(x - gem.radius, y - gem.radius, gem.radius * 2 + 1, gem.radius * 2 + 1);
+    ctx.fillStyle = PALETTE.cyan;
+    ctx.fillRect(x, y - gem.radius, 1, gem.radius * 2 + 1);
+    ctx.fillRect(x - gem.radius, y, gem.radius * 2 + 1, 1);
   }
 
   for (const particle of particles) {
+    if (!isVisible(particle.x, particle.y, 10)) continue;
     ctx.globalAlpha = Math.max(0, particle.life / particle.maxLife) * (particle.ghost ? 0.25 : 1);
     ctx.fillStyle = particle.color;
-    ctx.beginPath(); ctx.arc(particle.x, particle.y, particle.size, 0, TAU); ctx.fill();
+    const size = Math.max(1, Math.round(particle.size));
+    ctx.fillRect(screenX(particle.x), screenY(particle.y), size, size);
   }
   ctx.globalAlpha = 1;
 
   for (const number of numbers) {
+    if (!isVisible(number.x, number.y, 20)) continue;
     ctx.globalAlpha = Math.max(0, number.life / 0.55);
-    ctx.fillStyle = number.critical ? '#ffd166' : '#f8f3ff';
-    ctx.font = `${number.critical ? 800 : 600} ${number.critical ? 15 : 12}px monospace`;
-    ctx.textAlign = 'center';
-    ctx.fillText(number.critical ? `✦ ${number.value}` : number.value, number.x, number.y);
+    drawBitmapNumber(number.value, screenX(number.x), screenY(number.y), number.critical ? PALETTE.gold : PALETTE.ink, number.critical ? 2 : 1);
   }
   ctx.globalAlpha = 1;
 }
 
+function drawWorldBounds() {
+  const left = -camera.x;
+  const top = -camera.y;
+  const right = WORLD_WIDTH - camera.x;
+  const bottom = WORLD_HEIGHT - camera.y;
+  ctx.fillStyle = PALETTE.redDark;
+  if (left >= 0 && left < VIEW_WIDTH) ctx.fillRect(left, 0, 3, VIEW_HEIGHT);
+  if (right >= 0 && right < VIEW_WIDTH) ctx.fillRect(right - 3, 0, 3, VIEW_HEIGHT);
+  if (top >= 0 && top < VIEW_HEIGHT) ctx.fillRect(0, top, VIEW_WIDTH, 3);
+  if (bottom >= 0 && bottom < VIEW_HEIGHT) ctx.fillRect(0, bottom - 3, VIEW_WIDTH, 3);
+}
+
 function render() {
+  ctx.imageSmoothingEnabled = false;
+  const shakeX = screenShake ? Math.round((Math.random() - 0.5) * screenShake) : 0;
+  const shakeY = screenShake ? Math.round((Math.random() - 0.5) * screenShake) : 0;
   ctx.save();
-  const shakeX = screenShake ? (Math.random() - 0.5) * screenShake : 0;
-  const shakeY = screenShake ? (Math.random() - 0.5) * screenShake : 0;
   ctx.translate(shakeX, shakeY);
 
   drawBackground();
+  drawWorldBounds();
   drawAura();
   drawEffects();
   drawProjectiles();
@@ -943,24 +1189,24 @@ function render() {
   drawOrbit();
   drawPlayer();
 
-  const lightMask = ctx.createRadialGradient(player.x, player.y, 80, player.x, player.y, 350);
-  lightMask.addColorStop(0, 'rgba(0,0,0,0)');
-  lightMask.addColorStop(1, `rgba(4,2,10,${0.18 + phase * 0.06})`);
-  ctx.fillStyle = lightMask;
-  ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+  const darkness = 0.05 + phase * 0.03;
+  ctx.fillStyle = `rgba(3,2,8,${darkness})`;
+  for (let y = 0; y < VIEW_HEIGHT; y += 8) {
+    for (let x = 0; x < VIEW_WIDTH; x += 8) {
+      if ((x / 8 + y / 8) % 5 === 0) ctx.fillRect(x, y, 2, 2);
+    }
+  }
 
   if (flashAlpha > 0) {
     ctx.fillStyle = `rgba(180,224,255,${flashAlpha})`;
-    ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    ctx.fillRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
   }
 
   if (paused && running) {
-    ctx.fillStyle = 'rgba(4,2,10,.6)';
-    ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-    ctx.fillStyle = '#f6f4ff';
-    ctx.font = '700 30px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('时间被冻结', WORLD_WIDTH / 2, WORLD_HEIGHT / 2);
+    ctx.fillStyle = 'rgba(4,2,10,.74)';
+    ctx.fillRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
+    drawPixelLine(VIEW_WIDTH / 2 - 42, VIEW_HEIGHT / 2 - 8, VIEW_WIDTH / 2 + 42, VIEW_HEIGHT / 2 - 8, PALETTE.violetLight, 2);
+    drawPixelLine(VIEW_WIDTH / 2 - 42, VIEW_HEIGHT / 2 + 8, VIEW_WIDTH / 2 + 42, VIEW_HEIGHT / 2 + 8, PALETTE.violetLight, 2);
   }
   ctx.restore();
 }
@@ -998,7 +1244,13 @@ function loop(now) {
   lastFrame = now;
   if (!paused && !choosing) update(dt);
   render();
-  requestAnimationFrame(loop);
+  animationFrame = requestAnimationFrame(loop);
+}
+
+function togglePause() {
+  if (!running || choosing) return;
+  paused = !paused;
+  ui.pauseButton.textContent = paused ? '继续' : '暂停';
 }
 
 window.addEventListener('keydown', (event) => {
@@ -1009,12 +1261,7 @@ window.addEventListener('keydown', (event) => {
   if (event.key.toLowerCase() === 'p' || event.key === 'Escape') togglePause();
 });
 window.addEventListener('keyup', (event) => keys.delete(event.key));
-
-function togglePause() {
-  if (!running || choosing) return;
-  paused = !paused;
-  ui.pauseButton.textContent = paused ? '继续' : '暂停';
-}
+window.addEventListener('resize', resizePixelCanvas);
 
 document.querySelectorAll('.hero-card').forEach((button) => {
   button.addEventListener('click', () => {
@@ -1029,10 +1276,12 @@ document.querySelector('#restart-button').addEventListener('click', () => {
   startGame();
 });
 ui.pauseButton.addEventListener('click', togglePause);
+ui.scaleButton.addEventListener('click', cycleScale);
 ui.soundButton.addEventListener('click', () => {
   sound.enabled = !sound.enabled;
   ui.soundButton.textContent = `声音：${sound.enabled ? '开' : '关'}`;
   if (sound.enabled) sound.init();
 });
 
+resizePixelCanvas();
 resetGame();
