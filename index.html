@@ -5,15 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Night Star Survivor - 暗夜像素幻想生存游戏" />
   <title>Night Star Survivor</title>
-  <link rel="stylesheet" href="./style.css" />
-  <link rel="stylesheet" href="./fit-canvas.css" />
-  <link rel="stylesheet" href="./rich-content.css" />
-  <link rel="stylesheet" href="./fullscreen-hud.css" />
-  <link rel="stylesheet" href="./combat-telemetry.css" />
+  <link rel="stylesheet" href="./style.css?v=20260723.2" />
+  <link rel="stylesheet" href="./fit-canvas.css?v=20260723.2" />
+  <link rel="stylesheet" href="./rich-content.css?v=20260723.2" />
+  <link rel="stylesheet" href="./fullscreen-hud.css?v=20260723.2" />
+  <link rel="stylesheet" href="./combat-telemetry.css?v=20260723.2" />
+  <link rel="stylesheet" href="./hud-visibility.css?v=20260723.2" />
 </head>
 <body>
   <main class="game-shell">
-    <section class="battlefield-frame unified-layout">
+    <section class="battlefield-frame unified-layout" data-hud-version="2">
       <header class="frame-header" aria-label="战场界面">
         <div class="frame-brand">
           <p class="eyebrow">NIGHT STAR PROTOCOL</p>
@@ -25,6 +26,11 @@
           <article class="metric-chip"><span>击败</span><strong id="kill-value">0</strong></article>
           <article class="metric-chip"><span>阶段</span><strong id="phase-value">薄暮</strong></article>
           <article class="metric-chip danger-chip"><span>威胁</span><strong id="threat-value">低</strong></article>
+          <article id="combat-output-chip" class="metric-chip combat-output-chip">
+            <span>输出 / DPS</span>
+            <strong id="combat-dps-value">0 DPS</strong>
+            <small id="combat-total-value">总伤害 0</small>
+          </article>
           <article class="metric-chip render-chip"><span>地图模式</span><strong id="render-value">640×360 · 全地图可见</strong></article>
         </section>
         <div class="frame-actions">
@@ -62,13 +68,16 @@
         <div class="stage-center">
           <div class="canvas-shell">
             <canvas id="game-canvas" width="640" height="360" aria-label="完整单屏像素竞技场"></canvas>
+            <div id="acquired-items-strip" class="acquired-items-strip" aria-live="polite">
+              <span class="empty-item">道具记录待机</span>
+            </div>
           </div>
 
           <div id="start-screen" class="overlay visible">
             <section class="panel start-panel">
               <p class="panel-kicker">星火尚未熄灭</p>
               <h2>选择一位守夜者</h2>
-              <p class="panel-copy">整个网页窗口现在就是战场界面。生命、经验、星爆、时间、等级、击杀、输出和当前构筑都会直接显示在竞技场内部。</p>
+              <p class="panel-copy">整个网页窗口就是战场界面。生命、经验、星爆、时间、等级、击杀、DPS、累计输出和本局道具都会显示在竞技场内部。</p>
 
               <div class="hero-grid" id="hero-grid">
                 <button class="hero-card selected" data-hero="astrologer" type="button">
@@ -134,6 +143,29 @@
         </div>
 
         <aside class="stage-right ui-pane" aria-label="战场道具与输出统计">
+          <div id="telemetry-panel" class="pane-block telemetry-pane pixel-terminal">
+            <div class="pane-title-row">
+              <span class="pane-title">输出终端</span>
+              <small class="hud-online">HUD ONLINE · 最近 5 秒</small>
+            </div>
+            <div class="telemetry-grid">
+              <span><small>当前 DPS</small><strong id="telemetry-dps">0</strong></span>
+              <span><small>总伤害</small><strong id="telemetry-total">0</strong></span>
+              <span><small>峰值 DPS</small><strong id="telemetry-peak">0</strong></span>
+              <span><small>有效命中</small><strong id="telemetry-hits">0</strong></span>
+            </div>
+          </div>
+
+          <div id="acquired-panel" class="pane-block acquired-pane pixel-terminal">
+            <div class="pane-title-row">
+              <span class="pane-title">本局道具</span>
+              <small>获取记录</small>
+            </div>
+            <div id="acquired-item-list" class="acquired-item-list">
+              <span class="empty-item">尚未获取道具</span>
+            </div>
+          </div>
+
           <div class="pane-block lore-pane">
             <div class="pane-title-row"><span class="pane-title">战场协议</span><small>操作提示</small></div>
             <div class="build-list tips-list">
@@ -152,10 +184,10 @@
     </section>
   </main>
 
-  <script src="./game.js"></script>
-  <script src="./single-screen.js"></script>
-  <script src="./rich-content.js"></script>
-  <script src="./combat-telemetry.js"></script>
-  <script src="./fit-canvas.js"></script>
+  <script src="./game.js?v=20260723.2"></script>
+  <script src="./single-screen.js?v=20260723.2"></script>
+  <script src="./rich-content.js?v=20260723.2"></script>
+  <script src="./combat-telemetry.js?v=20260723.2"></script>
+  <script src="./fit-canvas.js?v=20260723.2"></script>
 </body>
 </html>
