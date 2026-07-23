@@ -30,12 +30,14 @@ jobs:
           node --check victory-guard.js
           node --check cosmic-contracts.js
           node --check adaptive-hud.js
+          node --check nightfall-v3.js
           node --check fit-canvas.js
           node --check tests/hud-structure.mjs
           node --check tests/live-upgrade.mjs
           node --check tests/gameplay-director.mjs
           node --check tests/cosmic-contracts.mjs
           node --check tests/adaptive-hud.mjs
+          node --check tests/nightfall-v3.mjs
 
       - name: 检查核心静态文件
         run: |
@@ -57,6 +59,8 @@ jobs:
           test -s cosmic-contracts.js
           test -s adaptive-hud.css
           test -s adaptive-hud.js
+          test -s nightfall-v3.css
+          test -s nightfall-v3.js
           test -s fit-canvas.css
           test -s fit-canvas.js
           test -s fullscreen-hud.css
@@ -66,6 +70,7 @@ jobs:
           test -s tests/gameplay-director.mjs
           test -s tests/cosmic-contracts.mjs
           test -s tests/adaptive-hud.mjs
+          test -s tests/nightfall-v3.mjs
 
       - name: 检查 Pixel-perfect 渲染约束
         run: |
@@ -127,6 +132,9 @@ jobs:
 
       - name: 检查自适应精简 HUD 与悬停详情
         run: node tests/adaptive-hud.mjs
+
+      - name: 检查夜潮超载、首领破韧与战斗驾驶舱
+        run: node tests/nightfall-v3.mjs
 
       - name: 检查全窗口战场与内嵌 HUD
         run: |
