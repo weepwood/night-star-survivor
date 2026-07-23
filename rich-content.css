@@ -1,0 +1,140 @@
+.canvas-shell {
+  position: relative;
+}
+
+.active-buffs {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  max-width: calc(100% - 36px);
+  pointer-events: none;
+}
+
+.active-buffs span {
+  padding: 4px 7px;
+  border: 1px solid rgba(121, 230, 255, .28);
+  border-radius: 5px;
+  color: var(--cyan);
+  background: rgba(9, 6, 17, .78);
+  font-size: 10px;
+  letter-spacing: .04em;
+}
+
+.active-buffs .muted-buff {
+  color: var(--muted);
+  border-color: rgba(205, 185, 255, .12);
+}
+
+.loot-codex-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 7px;
+}
+
+.loot-entry {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  padding: 7px;
+  border: 1px solid rgba(205, 185, 255, .1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .02);
+}
+
+.loot-entry strong,
+.loot-entry small {
+  display: block;
+}
+
+.loot-entry strong {
+  color: var(--ink);
+  font-size: 11px;
+}
+
+.loot-entry small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.loot-pixel {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  color: var(--loot-color);
+  border: 1px solid var(--loot-color);
+  border-radius: 6px;
+  background: #0b0813;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .03);
+  font-style: normal;
+  font-size: 15px;
+}
+
+.rich-upgrade-card {
+  overflow: hidden;
+}
+
+.rich-upgrade-card::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 3px;
+  background: rgba(121, 230, 255, .55);
+}
+
+.rich-upgrade-card[data-rarity="uncommon"]::after { background: rgba(113, 230, 162, .72); }
+.rich-upgrade-card[data-rarity="rare"]::after { background: rgba(121, 230, 255, .82); }
+.rich-upgrade-card[data-rarity="epic"]::after { background: rgba(196, 167, 255, .9); }
+.rich-upgrade-card[data-rarity="legendary"]::after { background: rgba(255, 209, 102, .95); }
+
+.upgrade-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 9px;
+  border: 1px solid rgba(205, 185, 255, .18);
+  border-radius: 8px;
+  color: var(--cyan);
+  background: rgba(8, 6, 16, .74);
+  font-size: 21px;
+}
+
+.rich-upgrade-card[data-rarity="epic"] .upgrade-icon { color: var(--violet-strong); }
+.rich-upgrade-card[data-rarity="legendary"] .upgrade-icon { color: var(--gold); }
+
+@media (min-width: 1361px) {
+  .loot-codex-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 1024px) {
+  .loot-codex-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .loot-codex-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .active-buffs {
+    left: 12px;
+    bottom: 12px;
+    max-width: calc(100% - 24px);
+  }
+}
+
+@media (max-width: 440px) {
+  .loot-codex-grid {
+    grid-template-columns: 1fr;
+  }
+}
