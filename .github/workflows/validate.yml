@@ -27,6 +27,7 @@ jobs:
           node --check combat-telemetry.js
           node --check live-upgrade.js
           node --check gameplay-director.js
+          node --check victory-guard.js
           node --check fit-canvas.js
           node --check tests/hud-structure.mjs
           node --check tests/live-upgrade.mjs
@@ -46,6 +47,8 @@ jobs:
           test -s live-upgrade.js
           test -s gameplay-director.css
           test -s gameplay-director.js
+          test -s gameplay-layout.css
+          test -s victory-guard.js
           test -s fit-canvas.css
           test -s fit-canvas.js
           test -s fullscreen-hud.css
