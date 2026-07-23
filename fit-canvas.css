@@ -1,0 +1,61 @@
+/* 完整战场模式：战场优先占据整行，状态终端收纳到下方。 */
+.battlefield-stage {
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.stage-center {
+  order: 1;
+  width: 100%;
+  min-width: 0;
+}
+
+.stage-left,
+.stage-right {
+  order: 2;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.canvas-shell {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+#game-canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+#scale-toggle:disabled {
+  cursor: default;
+  opacity: 1;
+  color: var(--cyan);
+  border-color: rgba(121, 230, 255, .32);
+}
+
+@media (min-width: 1180px) {
+  .stage-left,
+  .stage-right {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 780px) {
+  .stage-left,
+  .stage-right {
+    grid-template-columns: 1fr;
+  }
+
+  .canvas-shell {
+    padding: 6px;
+  }
+}
