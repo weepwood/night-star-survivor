@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="./style.css" />
   <link rel="stylesheet" href="./fit-canvas.css" />
   <link rel="stylesheet" href="./rich-content.css" />
+  <link rel="stylesheet" href="./fullscreen-hud.css" />
 </head>
 <body>
   <main class="game-shell">
@@ -33,7 +34,7 @@
       </header>
 
       <div class="battlefield-stage">
-        <aside class="stage-left ui-pane">
+        <aside class="stage-left ui-pane" aria-label="角色状态与当前构筑">
           <div class="pane-block player-pane">
             <div class="pane-title-row"><span class="pane-title">守夜者状态</span><small id="status-message">等待进入夜幕。</small></div>
             <div class="status-orbit" aria-hidden="true"><span></span><span></span><span></span></div>
@@ -66,7 +67,7 @@
             <section class="panel start-panel">
               <p class="panel-kicker">星火尚未熄灭</p>
               <h2>选择一位守夜者</h2>
-              <p class="panel-copy">在完整可见的单屏竞技场中自动攻击、收集星尘、构筑七类武器，拾取星蚀道具，并击败每个阶段的星蚀首领。</p>
+              <p class="panel-copy">整个网页窗口现在就是战场界面。生命、经验、星爆、时间、等级、击杀和当前构筑都会直接显示在竞技场内部。</p>
 
               <div class="hero-grid" id="hero-grid">
                 <button class="hero-card selected" data-hero="astrologer" type="button">
@@ -131,7 +132,7 @@
           </div>
         </div>
 
-        <aside class="stage-right ui-pane">
+        <aside class="stage-right ui-pane" aria-label="战场道具信息">
           <div class="pane-block lore-pane">
             <div class="pane-title-row"><span class="pane-title">战场协议</span><small>操作提示</small></div>
             <div class="build-list tips-list">
@@ -143,7 +144,7 @@
           </div>
           <div class="pane-block atmosphere-pane">
             <div class="pane-title-row"><span class="pane-title">夜幕情报</span><small>宇宙现场</small></div>
-            <p class="lore-copy">中央画面就是全部可移动地图。新武器、遗物、临时道具、精英掉落和进化特效都会直接出现在同一竞技场中。</p>
+            <p class="lore-copy">所有关键状态和道具信息均以内嵌 HUD 形式显示在实际战场边界内。</p>
           </div>
         </aside>
       </div>
