@@ -36,6 +36,7 @@ jobs:
           test -s rich-content.js
           test -s fit-canvas.css
           test -s fit-canvas.js
+          test -s fullscreen-hud.css
 
       - name: 检查 Pixel-perfect 渲染约束
         run: |
@@ -67,6 +68,17 @@ jobs:
           grep -q "drawShockwaves" rich-content.js
           grep -q "rich-content.css" index.html
           grep -q "rich-content.js" index.html
+
+      - name: 检查全窗口战场与内嵌 HUD
+        run: |
+          grep -q "height: 100dvh" fullscreen-hud.css
+          grep -q -- "--arena-left" fullscreen-hud.css
+          grep -q -- "--arena-bottom" fullscreen-hud.css
+          grep -q "setArenaInsets" fit-canvas.js
+          grep -q "canvasShell.clientHeight" fit-canvas.js
+          grep -q "fullscreen-hud.css" index.html
+          grep -q "角色状态与当前构筑" index.html
+          grep -q "所有关键状态和道具信息均以内嵌 HUD" index.html
 
       - name: 检查完整战场适配
         run: |

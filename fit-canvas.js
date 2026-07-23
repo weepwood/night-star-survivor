@@ -1,53 +1,69 @@
-const canvas = document.querySelector('#game-canvas');
-const canvasShell = document.querySelector('.canvas-shell');
-const scaleButton = document.querySelector('#scale-toggle');
-const renderValue = document.querySelector('#render-value');
+(() => {
+  const fitCanvas = document.querySelector('#game-canvas');
+  const canvasShell = document.querySelector('.canvas-shell');
+  const battlefieldFrame = document.querySelector('.battlefield-frame');
+  const scaleButton = document.querySelector('#scale-toggle');
+  const renderValue = document.querySelector('#render-value');
 
-const LOGICAL_WIDTH = 640;
-const LOGICAL_HEIGHT = 360;
+  const LOGICAL_WIDTH = 640;
+  const LOGICAL_HEIGHT = 360;
 
-function fitWholeBattlefield() {
-  if (!canvas || !canvasShell) return;
+  function setArenaInsets(width, height) {
+    if (!canvasShell || !battlefieldFrame) return;
+    const left = Math.max(0, Math.floor((canvasShell.clientWidth - width) / 2));
+    const top = Math.max(0, Math.floor((canvasShell.clientHeight - height) / 2));
+    const right = Math.max(0, canvasShell.clientWidth - width - left);
+    const bottom = Math.max(0, canvasShell.clientHeight - height - top);
 
-  const shellStyle = getComputedStyle(canvasShell);
-  const horizontalPadding = parseFloat(shellStyle.paddingLeft) + parseFloat(shellStyle.paddingRight);
-  const verticalPadding = parseFloat(shellStyle.paddingTop) + parseFloat(shellStyle.paddingBottom);
-  const availableWidth = Math.max(280, canvasShell.clientWidth - horizontalPadding);
-  const stageTop = canvasShell.getBoundingClientRect().top;
-  const availableHeight = Math.max(220, window.innerHeight - stageTop - verticalPadding - 20);
-  const fitScale = Math.min(availableWidth / LOGICAL_WIDTH, availableHeight / LOGICAL_HEIGHT);
-  const dpr = Math.max(1, window.devicePixelRatio || 1);
-
-  // 优先使用整数物理像素倍率；空间不足时才采用最近邻缩小。
-  const integerPhysicalScale = Math.floor(fitScale * dpr);
-  const cssScale = integerPhysicalScale >= 1
-    ? integerPhysicalScale / dpr
-    : Math.max(0.45, fitScale);
-
-  const width = Math.floor(LOGICAL_WIDTH * cssScale);
-  const height = Math.floor(LOGICAL_HEIGHT * cssScale);
-  canvas.style.width = `${width}px`;
-  canvas.style.height = `${height}px`;
-  canvas.style.maxWidth = '100%';
-
-  if (scaleButton) {
-    scaleButton.disabled = true;
-    scaleButton.textContent = '战场：完整显示';
-    scaleButton.title = '战场会自动缩放到页面内，避免横向滚动和裁切';
+    battlefieldFrame.style.setProperty('--arena-left', `${left}px`);
+    battlefieldFrame.style.setProperty('--arena-right', `${right}px`);
+    battlefieldFrame.style.setProperty('--arena-top', `${top}px`);
+    battlefieldFrame.style.setProperty('--arena-bottom', `${bottom}px`);
   }
 
-  if (renderValue) {
-    const physicalPixels = cssScale * dpr;
-    const integerLabel = Number.isInteger(physicalPixels)
-      ? `每格 ${physicalPixels} 物理像素`
-      : '最近邻适配';
-    renderValue.textContent = `${width}×${height} · ${integerLabel}`;
+  function fitWholeBattlefield() {
+    if (!fitCanvas || !canvasShell) return;
+
+    const availableWidth = Math.max(280, canvasShell.clientWidth);
+    const availableHeight = Math.max(158, canvasShell.clientHeight);
+    const fitScale = Math.min(availableWidth / LOGICAL_WIDTH, availableHeight / LOGICAL_HEIGHT);
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+    // 优先保持整数物理像素；窗口不足时使用最近邻缩小，但不裁切完整地图。
+    const integerPhysicalScale = Math.floor(fitScale * dpr);
+    const cssScale = integerPhysicalScale >= 1
+      ? integerPhysicalScale / dpr
+      : Math.max(0.4, fitScale);
+
+    const width = Math.max(256, Math.floor(LOGICAL_WIDTH * cssScale));
+    const height = Math.max(144, Math.floor(LOGICAL_HEIGHT * cssScale));
+
+    fitCanvas.style.width = `${width}px`;
+    fitCanvas.style.height = `${height}px`;
+    fitCanvas.style.maxWidth = 'none';
+    fitCanvas.style.maxHeight = 'none';
+    setArenaInsets(width, height);
+
+    if (scaleButton) {
+      scaleButton.disabled = true;
+      scaleButton.textContent = '战场：全窗口';
+      scaleButton.title = '战场使用整个网页窗口，并保持完整地图与像素比例';
+    }
+
+    if (renderValue) {
+      const physicalPixels = cssScale * dpr;
+      const integerLabel = Number.isInteger(physicalPixels)
+        ? `每格 ${physicalPixels} 物理像素`
+        : '最近邻适配';
+      renderValue.textContent = `${width}×${height} · ${integerLabel}`;
+    }
   }
-}
 
-const observer = new ResizeObserver(() => requestAnimationFrame(fitWholeBattlefield));
-if (canvasShell) observer.observe(canvasShell);
+  const observer = new ResizeObserver(() => requestAnimationFrame(fitWholeBattlefield));
+  if (canvasShell) observer.observe(canvasShell);
 
-window.addEventListener('resize', () => requestAnimationFrame(fitWholeBattlefield));
-window.addEventListener('orientationchange', () => requestAnimationFrame(fitWholeBattlefield));
-requestAnimationFrame(fitWholeBattlefield);
+  window.addEventListener('resize', () => requestAnimationFrame(fitWholeBattlefield));
+  window.addEventListener('orientationchange', () => requestAnimationFrame(fitWholeBattlefield));
+  window.visualViewport?.addEventListener('resize', () => requestAnimationFrame(fitWholeBattlefield));
+  requestAnimationFrame(fitWholeBattlefield);
+})();
