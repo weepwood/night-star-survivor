@@ -22,6 +22,7 @@ jobs:
       - name: 检查 JavaScript 语法
         run: |
           node --check game.js
+          node --check single-screen.js
           node --check fit-canvas.js
 
       - name: 检查核心静态文件
@@ -29,6 +30,7 @@ jobs:
           test -s index.html
           test -s style.css
           test -s game.js
+          test -s single-screen.js
           test -s fit-canvas.css
           test -s fit-canvas.js
 
@@ -36,11 +38,20 @@ jobs:
         run: |
           grep -q "const VIEW_WIDTH = 640" game.js
           grep -q "const VIEW_HEIGHT = 360" game.js
-          grep -q "const WORLD_WIDTH = 2560" game.js
           grep -q "ctx.imageSmoothingEnabled = false" game.js
           grep -q "window.devicePixelRatio" game.js
           grep -q "image-rendering: pixelated" style.css
           grep -q 'width="640" height="360"' index.html
+
+      - name: 检查单屏竞技场约束
+        run: |
+          grep -q "updateCameraSingleScreen" single-screen.js
+          grep -q "camera.x = 0" single-screen.js
+          grep -q "camera.y = 0" single-screen.js
+          grep -q "clampToArena(player)" single-screen.js
+          grep -q "完整单屏像素竞技场" index.html
+          grep -q '<script src="./game.js"></script>' index.html
+          grep -q '<script src="./single-screen.js"></script>' index.html
 
       - name: 检查完整战场适配
         run: |

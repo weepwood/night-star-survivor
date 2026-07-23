@@ -22,10 +22,10 @@
           <article class="metric-chip"><span>击败</span><strong id="kill-value">0</strong></article>
           <article class="metric-chip"><span>阶段</span><strong id="phase-value">薄暮</strong></article>
           <article class="metric-chip danger-chip"><span>威胁</span><strong id="threat-value">低</strong></article>
-          <article class="metric-chip render-chip"><span>像素渲染</span><strong id="render-value">640×360 · 每格 2 物理像素</strong></article>
+          <article class="metric-chip render-chip"><span>地图模式</span><strong id="render-value">640×360 · 全地图可见</strong></article>
         </section>
         <div class="frame-actions">
-          <button id="scale-toggle" class="icon-button" type="button" aria-label="完整显示战场">战场：完整显示</button>
+          <button id="scale-toggle" class="icon-button" type="button" aria-label="完整地图已全部显示" disabled>地图：完整单屏</button>
           <button id="sound-toggle" class="icon-button" type="button" aria-label="切换声音">声音：开</button>
           <button id="pause-button" class="icon-button" type="button">暂停</button>
         </div>
@@ -58,14 +58,14 @@
 
         <div class="stage-center">
           <div class="canvas-shell">
-            <canvas id="game-canvas" width="640" height="360" aria-label="大地图像素游戏战场"></canvas>
+            <canvas id="game-canvas" width="640" height="360" aria-label="完整单屏像素竞技场"></canvas>
           </div>
 
           <div id="start-screen" class="overlay visible">
             <section class="panel start-panel">
               <p class="panel-kicker">星火尚未熄灭</p>
               <h2>选择一位守夜者</h2>
-              <p class="panel-copy">在不断扩张的夜幕中自动攻击、收集星尘、构筑武器，并击败每个阶段的星蚀首领。</p>
+              <p class="panel-copy">在完整可见的单屏竞技场中自动攻击、收集星尘、构筑武器，并击败每个阶段的星蚀首领。角色无法进入画面之外的隐藏区域。</p>
 
               <div class="hero-grid" id="hero-grid">
                 <button class="hero-card selected" data-hero="astrologer" type="button">
@@ -142,14 +142,15 @@
           </div>
           <div class="pane-block atmosphere-pane">
             <div class="pane-title-row"><span class="pane-title">夜幕情报</span><small>宇宙现场</small></div>
-            <p class="lore-copy">守夜者的仪表已与战场终端合并。完整战场会自动适配页面宽度与高度，不再横向滚动或裁切。</p>
+            <p class="lore-copy">中央画面就是全部可移动地图。四条发光边界同时代表竞技场边缘，玩家、敌人、首领、危险区和掉落都不会进入画面之外。</p>
           </div>
         </aside>
       </div>
     </section>
   </main>
 
-  <script type="module" src="./game.js"></script>
+  <script src="./game.js"></script>
+  <script src="./single-screen.js"></script>
   <script src="./fit-canvas.js"></script>
 </body>
 </html>
