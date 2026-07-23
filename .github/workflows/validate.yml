@@ -25,8 +25,10 @@ jobs:
           node --check single-screen.js
           node --check rich-content.js
           node --check combat-telemetry.js
+          node --check live-upgrade.js
           node --check fit-canvas.js
           node --check tests/hud-structure.mjs
+          node --check tests/live-upgrade.mjs
 
       - name: 检查核心静态文件
         run: |
@@ -38,11 +40,14 @@ jobs:
           test -s rich-content.js
           test -s combat-telemetry.css
           test -s combat-telemetry.js
+          test -s live-upgrade.css
+          test -s live-upgrade.js
           test -s fit-canvas.css
           test -s fit-canvas.js
           test -s fullscreen-hud.css
           test -s hud-visibility.css
           test -s tests/hud-structure.mjs
+          test -s tests/live-upgrade.mjs
 
       - name: 检查 Pixel-perfect 渲染约束
         run: |
@@ -92,6 +97,9 @@ jobs:
 
       - name: 检查 HUD 静态结构与低高度可见性
         run: node tests/hud-structure.mjs
+
+      - name: 检查实时非暂停构筑
+        run: node tests/live-upgrade.mjs
 
       - name: 检查全窗口战场与内嵌 HUD
         run: |
