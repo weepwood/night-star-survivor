@@ -121,7 +121,7 @@
         const candidates = nearbyEnemies(projectile, enemyGrid);
         for (const enemy of candidates) {
           if (remove) break;
-          if (!enemies.includes(enemy)) continue;
+          if (!enemy || enemy.hp <= 0) continue;
           if (Math.hypot(projectile.x - enemy.x, projectile.y - enemy.y) >= projectile.radius + enemy.radius) continue;
           damageEnemy(enemy, projectile.damage);
           if (projectile.pierce > 0) projectile.pierce -= 1;
@@ -152,7 +152,7 @@
 
     const keptEnemyShots = enemyShots.slice(-MAX_ENEMY_PROJECTILES);
     const playerSlots = Math.max(0, MAX_PROJECTILES - keptEnemyShots.length);
-    const keptPlayerShots = playerShots.slice(-playerSlots);
+    const keptPlayerShots = playerSlots > 0 ? playerShots.slice(-playerSlots) : [];
     stats.trimmedProjectiles += projectiles.length - keptEnemyShots.length - keptPlayerShots.length;
     projectiles = [...keptPlayerShots, ...keptEnemyShots];
   }
