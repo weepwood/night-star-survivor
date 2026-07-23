@@ -15,6 +15,7 @@
         <h1>Night Star Survivor</h1>
       </div>
       <div class="header-actions">
+        <button id="scale-toggle" class="icon-button" type="button" aria-label="切换整数像素倍率">物理像素：自动</button>
         <button id="sound-toggle" class="icon-button" type="button" aria-label="切换声音">声音：开</button>
         <button id="pause-button" class="icon-button" type="button">暂停</button>
       </div>
@@ -26,79 +27,83 @@
       <article class="hud-card"><span>击败</span><strong id="kill-value">0</strong></article>
       <article class="hud-card"><span>阶段</span><strong id="phase-value">薄暮</strong></article>
       <article class="hud-card danger-card"><span>威胁</span><strong id="threat-value">低</strong></article>
+      <article class="hud-card pixel-card"><span>像素渲染</span><strong id="render-value">640×360 · 每格 2 物理像素</strong></article>
     </section>
 
-    <section class="battlefield-frame">
-      <canvas id="game-canvas" width="960" height="540" aria-label="游戏战场"></canvas>
+    <div class="battlefield-scroll" aria-label="可横向滚动的像素战场">
+      <section class="battlefield-frame">
+        <canvas id="game-canvas" width="640" height="360" aria-label="大地图像素游戏战场"></canvas>
 
-      <div id="start-screen" class="overlay visible">
-        <section class="panel start-panel">
-          <p class="panel-kicker">星火尚未熄灭</p>
-          <h2>选择一位守夜者</h2>
-          <p class="panel-copy">在不断收缩的夜幕中自动攻击、收集星尘、构筑武器，并击败每个阶段的星蚀首领。</p>
+        <div id="start-screen" class="overlay visible">
+          <section class="panel start-panel">
+            <p class="panel-kicker">星火尚未熄灭</p>
+            <h2>选择一位守夜者</h2>
+            <p class="panel-copy">在 2560×1440 的大地图中探索。战场使用 640×360 逻辑像素，并依据屏幕 DPR 选择整数物理像素倍率，保证每格像素边界清晰。</p>
 
-          <div class="hero-grid" id="hero-grid">
-            <button class="hero-card selected" data-hero="astrologer" type="button">
-              <span class="hero-portrait astrologer-portrait" aria-hidden="true"></span>
-              <strong>星术师</strong>
-              <small>高伤害、快速施法</small>
-              <em>初始：双重星矢</em>
-            </button>
-            <button class="hero-card" data-hero="warden" type="button">
-              <span class="hero-portrait warden-portrait" aria-hidden="true"></span>
-              <strong>守夜人</strong>
-              <small>高生命、坚固护甲</small>
-              <em>初始：星辉护盾</em>
-            </button>
-            <button class="hero-card" data-hero="ranger" type="button">
-              <span class="hero-portrait ranger-portrait" aria-hidden="true"></span>
-              <strong>逐星者</strong>
-              <small>高速移动、高暴击</small>
-              <em>初始：迅捷之靴</em>
-            </button>
-          </div>
+            <div class="hero-grid" id="hero-grid">
+              <button class="hero-card selected" data-hero="astrologer" type="button">
+                <span class="hero-portrait astrologer-portrait" aria-hidden="true"></span>
+                <strong>星术师</strong>
+                <small>高伤害、快速施法</small>
+                <em>初始：双重星矢</em>
+              </button>
+              <button class="hero-card" data-hero="warden" type="button">
+                <span class="hero-portrait warden-portrait" aria-hidden="true"></span>
+                <strong>守夜人</strong>
+                <small>高生命、坚固护甲</small>
+                <em>初始：星辉护盾</em>
+              </button>
+              <button class="hero-card" data-hero="ranger" type="button">
+                <span class="hero-portrait ranger-portrait" aria-hidden="true"></span>
+                <strong>逐星者</strong>
+                <small>高速移动、高暴击</small>
+                <em>初始：迅捷之靴</em>
+              </button>
+            </div>
 
-          <label class="difficulty-field">
-            <span>难度</span>
-            <select id="difficulty-select">
-              <option value="0.82">故事</option>
-              <option value="1" selected>标准</option>
-              <option value="1.28">噩梦</option>
-            </select>
-          </label>
+            <label class="difficulty-field">
+              <span>难度</span>
+              <select id="difficulty-select">
+                <option value="0.82">故事</option>
+                <option value="1" selected>标准</option>
+                <option value="1.28">噩梦</option>
+              </select>
+            </label>
 
-          <div class="control-hints">
-            <span>WASD / 方向键移动</span>
-            <span>Space 冲刺</span>
-            <span>Q 星爆</span>
-          </div>
+            <div class="control-hints">
+              <span>WASD / 方向键移动</span>
+              <span>Space 冲刺</span>
+              <span>Q 星爆</span>
+              <span>镜头跟随 · 大地图探索</span>
+            </div>
 
-          <button id="start-button" class="primary-button" type="button">点燃星火</button>
-        </section>
-      </div>
+            <button id="start-button" class="primary-button" type="button">点燃星火</button>
+          </section>
+        </div>
 
-      <div id="upgrade-screen" class="overlay">
-        <section class="panel upgrade-panel">
-          <p class="panel-kicker">星尘共鸣</p>
-          <h2 id="upgrade-title">选择一项强化</h2>
-          <div id="upgrade-options" class="upgrade-grid"></div>
-        </section>
-      </div>
+        <div id="upgrade-screen" class="overlay">
+          <section class="panel upgrade-panel">
+            <p class="panel-kicker">星尘共鸣</p>
+            <h2 id="upgrade-title">选择一项强化</h2>
+            <div id="upgrade-options" class="upgrade-grid"></div>
+          </section>
+        </div>
 
-      <div id="game-over-screen" class="overlay">
-        <section class="panel game-over-panel">
-          <p class="panel-kicker">星火熄灭</p>
-          <h2>夜幕吞没了守夜者</h2>
-          <p id="game-over-stats" class="panel-copy"></p>
-          <button id="restart-button" class="primary-button" type="button">重新点燃</button>
-        </section>
-      </div>
+        <div id="game-over-screen" class="overlay">
+          <section class="panel game-over-panel">
+            <p class="panel-kicker">星火熄灭</p>
+            <h2>夜幕吞没了守夜者</h2>
+            <p id="game-over-stats" class="panel-copy"></p>
+            <button id="restart-button" class="primary-button" type="button">重新点燃</button>
+          </section>
+        </div>
 
-      <div id="boss-banner" class="boss-banner" aria-live="polite">
-        <span>WARNING</span>
-        <strong id="boss-name">星蚀巨像</strong>
-      </div>
-    </section>
+        <div id="boss-banner" class="boss-banner" aria-live="polite">
+          <span>WARNING</span>
+          <strong id="boss-name">星蚀巨像</strong>
+        </div>
+      </section>
+    </div>
 
     <section class="status-panel">
       <div class="bars">
