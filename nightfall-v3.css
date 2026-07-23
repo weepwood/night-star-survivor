@@ -1,0 +1,1159 @@
+/* Nightfall V3：战斗驾驶舱、技能坞、分栏标签与高反馈状态。 */
+body.nightfall-v3 {
+  --nf-bg: rgba(7, 5, 15, .9);
+  --nf-bg-soft: rgba(13, 9, 24, .84);
+  --nf-line: #4d3b70;
+  --nf-line-bright: #9f7aea;
+  --nf-cyan: #79e6ff;
+  --nf-gold: #ffd166;
+  --nf-red: #ff6b8a;
+  --nf-green: #71e6a2;
+  --nf-ink: #f6f4ff;
+  --nf-muted: #9b90b3;
+}
+
+body.nightfall-v3 .frame-brand,
+body.nightfall-v3 .top-metrics,
+body.nightfall-v3 #hud-density-toggle,
+body.nightfall-v3 .mission-pane,
+body.nightfall-v3 .lore-pane,
+body.nightfall-v3 .atmosphere-pane {
+  display: none !important;
+}
+
+body.nightfall-v3 .frame-header {
+  top: calc(var(--arena-top) + 6px);
+  right: calc(var(--arena-right) + 6px);
+  left: auto;
+  z-index: 24;
+  display: block;
+  width: auto;
+}
+
+body.nightfall-v3 .frame-actions {
+  gap: 3px;
+  padding: 2px;
+  border: 1px solid rgba(121, 230, 255, .2);
+  border-radius: 0;
+  background: rgba(7, 5, 15, .78);
+  backdrop-filter: none;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, .42);
+}
+
+body.nightfall-v3 .frame-actions .icon-button {
+  min-height: 28px;
+  padding: 0 7px;
+  border-radius: 0;
+  font-family: "Courier New", "Microsoft YaHei", monospace;
+  font-size: 7px;
+}
+
+body.nightfall-v3 #scale-toggle {
+  display: none !important;
+}
+
+#nightfall-ribbon {
+  position: absolute;
+  z-index: 20;
+  top: calc(var(--arena-top) + 6px);
+  right: calc(var(--arena-right) + 122px);
+  left: calc(var(--arena-left) + 7px);
+  display: grid;
+  grid-template-columns: 104px minmax(230px, 1fr) 150px;
+  gap: 5px;
+  min-height: 34px;
+  font-family: "Courier New", "Microsoft YaHei", monospace;
+  pointer-events: none;
+}
+
+.nightfall-ribbon-side,
+.nightfall-boss-core {
+  min-width: 0;
+  border: 1px solid rgba(121, 230, 255, .22);
+  background: linear-gradient(180deg, rgba(19, 13, 35, .93), rgba(7, 5, 15, .88));
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, .42), inset 0 0 0 1px rgba(255, 255, 255, .025);
+}
+
+.nightfall-ribbon-side {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0 5px;
+  padding: 4px 6px;
+}
+
+.nightfall-ribbon-side small {
+  grid-column: 1;
+  color: var(--nf-cyan);
+  font-size: 6px;
+  letter-spacing: .14em;
+}
+
+.nightfall-ribbon-side strong {
+  grid-column: 1;
+  overflow: hidden;
+  color: var(--nf-ink);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nightfall-ribbon-side > span {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  align-self: center;
+  justify-self: end;
+  color: var(--nf-gold);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.nightfall-ribbon-objective {
+  grid-template-columns: 1fr;
+}
+
+.nightfall-ribbon-objective small,
+.nightfall-ribbon-objective strong,
+.nightfall-ribbon-objective > span {
+  grid-column: 1;
+  grid-row: auto;
+  justify-self: stretch;
+}
+
+.nightfall-ribbon-objective > span {
+  overflow: hidden;
+  color: var(--nf-muted);
+  font-size: 6px;
+  text-overflow: ellipsis;
+}
+
+.nightfall-boss-core {
+  display: grid;
+  gap: 3px;
+  padding: 4px 7px;
+  border-color: rgba(255, 107, 138, .5);
+}
+
+.nightfall-boss-core[hidden] {
+  display: none;
+}
+
+.nightfall-boss-heading,
+.nightfall-break-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.nightfall-boss-heading span {
+  overflow: hidden;
+  color: var(--nf-red);
+  font-size: 8px;
+  letter-spacing: .06em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nightfall-boss-heading strong {
+  color: var(--nf-ink);
+  font-size: 7px;
+  white-space: nowrap;
+}
+
+.nightfall-boss-track,
+.nightfall-break-track,
+.nightfall-tide-track {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(77, 59, 112, .9);
+  background: #05030a;
+}
+
+.nightfall-boss-track {
+  height: 6px;
+}
+
+#nightfall-boss-hp-bar,
+#nightfall-break-bar,
+#nightfall-tide-bar {
+  width: 0;
+  height: 100%;
+  transition: width .08s steps(10, end);
+}
+
+#nightfall-boss-hp-bar {
+  background: repeating-linear-gradient(90deg, var(--nf-red) 0 8px, #d44d70 8px 11px);
+}
+
+.nightfall-break-row small {
+  flex: 0 0 auto;
+  color: var(--nf-gold);
+  font-size: 6px;
+}
+
+.nightfall-break-track {
+  flex: 1;
+  height: 4px;
+}
+
+#nightfall-break-bar {
+  background: repeating-linear-gradient(90deg, var(--nf-gold) 0 5px, var(--nf-cyan) 5px 7px);
+}
+
+.nightfall-boss-core.broken {
+  border-color: var(--nf-gold);
+  animation: nightfall-broken-pulse .28s steps(2, end) infinite alternate;
+}
+
+@keyframes nightfall-broken-pulse {
+  from { background: rgba(22, 14, 28, .94); }
+  to { background: rgba(46, 29, 31, .94); }
+}
+
+#nightfall-combat-feed {
+  position: absolute;
+  z-index: 23;
+  top: calc(var(--arena-top) + 47px);
+  left: 50%;
+  display: none;
+  max-width: min(440px, calc(100% - var(--arena-left) - var(--arena-right) - 30px));
+  padding: 4px 8px;
+  border: 1px solid var(--nf-line-bright);
+  color: var(--nf-ink);
+  background: rgba(7, 5, 15, .9);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, .5);
+  font-family: "Courier New", "Microsoft YaHei", monospace;
+  font-size: 8px;
+  letter-spacing: .08em;
+  text-align: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+#nightfall-combat-feed.visible {
+  display: block;
+  animation: nightfall-feed-in .18s steps(3, end) both;
+}
+
+#nightfall-combat-feed[data-tone="ready"] { border-color: var(--nf-cyan); color: var(--nf-cyan); }
+#nightfall-combat-feed[data-tone="overdrive"] { border-color: var(--nf-cyan); background: rgba(14, 31, 42, .94); }
+#nightfall-combat-feed[data-tone="break"] { border-color: var(--nf-gold); color: var(--nf-gold); }
+#nightfall-combat-feed[data-tone="mutation"] { border-color: var(--nf-line-bright); color: #d8c5ff; }
+#nightfall-combat-feed[data-tone="warning"] { border-color: var(--nf-red); color: #ffb0c1; }
+
+@keyframes nightfall-feed-in {
+  from { opacity: 0; transform: translate(-50%, -5px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+#nightfall-ability-dock {
+  position: absolute;
+  z-index: 22;
+  right: auto;
+  bottom: calc(var(--arena-bottom) + 7px);
+  left: 50%;
+  display: grid;
+  grid-template-columns: 96px minmax(150px, 1fr) 96px;
+  gap: 4px;
+  width: 440px;
+  max-width: calc(100% - var(--arena-left) - var(--arena-right) - 20px);
+  font-family: "Courier New", "Microsoft YaHei", monospace;
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+
+.nightfall-ability {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1px 5px;
+  min-width: 0;
+  min-height: 38px;
+  padding: 4px 6px;
+  border: 1px solid rgba(121, 230, 255, .24);
+  border-radius: 0;
+  color: var(--nf-ink);
+  background: rgba(7, 5, 15, .88);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, .46);
+  text-align: left;
+  cursor: pointer;
+}
+
+.nightfall-ability:hover,
+.nightfall-ability:focus-visible {
+  border-color: var(--nf-cyan);
+  background: rgba(16, 18, 33, .96);
+}
+
+.nightfall-ability kbd {
+  grid-row: 1 / 3;
+  align-self: center;
+  display: grid;
+  place-items: center;
+  min-width: 25px;
+  height: 24px;
+  padding: 0 3px;
+  border: 1px solid var(--nf-line-bright);
+  color: var(--nf-cyan);
+  background: #05030a;
+  font: inherit;
+  font-size: 7px;
+}
+
+.nightfall-ability span {
+  overflow: hidden;
+  color: var(--nf-muted);
+  font-size: 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nightfall-ability strong {
+  overflow: hidden;
+  color: var(--nf-ink);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nightfall-ability-primary {
+  grid-template-columns: auto minmax(0, 1fr);
+  border-color: rgba(159, 122, 234, .68);
+}
+
+.nightfall-tide-track {
+  grid-column: 1 / -1;
+  display: block;
+  height: 5px;
+  margin-top: 2px;
+}
+
+#nightfall-tide-bar {
+  display: block;
+  background: repeating-linear-gradient(90deg, var(--nf-line-bright) 0 7px, var(--nf-cyan) 7px 10px);
+}
+
+.nightfall-ability-primary.ready {
+  border-color: var(--nf-cyan);
+  animation: nightfall-ready .46s steps(2, end) infinite alternate;
+}
+
+.nightfall-ability-primary.ready strong {
+  color: var(--nf-cyan);
+}
+
+.nightfall-ability-primary.active {
+  border-color: var(--nf-cyan);
+  background: rgba(9, 30, 42, .96);
+}
+
+.nightfall-ability-primary.active #nightfall-tide-bar {
+  background: repeating-linear-gradient(90deg, var(--nf-cyan) 0 8px, var(--nf-gold) 8px 11px);
+}
+
+@keyframes nightfall-ready {
+  from { box-shadow: 2px 2px 0 rgba(0, 0, 0, .46); }
+  to { box-shadow: 2px 2px 0 rgba(0, 0, 0, .46), inset 0 0 0 2px rgba(121, 230, 255, .18); }
+}
+
+body.nightfall-overdrive-active .canvas-shell {
+  box-shadow: inset 0 0 0 3px rgba(121, 230, 255, .28);
+}
+
+body.nightfall-overdrive-active #nightfall-ribbon,
+body.nightfall-overdrive-active #nightfall-ability-dock {
+  filter: saturate(1.16) brightness(1.08);
+}
+
+body.nightfall-v3 .stage-left,
+body.nightfall-v3 .stage-right {
+  z-index: 16;
+  bottom: calc(var(--arena-bottom) + 52px);
+  gap: 4px;
+  pointer-events: none;
+}
+
+body.nightfall-v3 .stage-left > *,
+body.nightfall-v3 .stage-right > * {
+  pointer-events: auto;
+}
+
+body.nightfall-v3 .stage-left {
+  left: calc(var(--arena-left) + 7px);
+  width: min(218px, calc(46% - var(--arena-left) - 12px));
+  max-height: min(44vh, 310px);
+}
+
+body.nightfall-v3 .stage-right {
+  right: calc(var(--arena-right) + 7px);
+  display: grid !important;
+  width: min(210px, calc(46% - var(--arena-right) - 12px));
+  max-height: min(38vh, 255px);
+  overflow: visible;
+}
+
+body.nightfall-v3 .ui-pane .pane-block {
+  padding: 5px 6px;
+  border: 1px solid rgba(121, 230, 255, .18);
+  border-radius: 0;
+  background: rgba(7, 5, 15, .78);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, .38);
+  backdrop-filter: none;
+}
+
+body.nightfall-v3 .player-pane {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3px 5px;
+}
+
+body.nightfall-v3 .player-pane .pane-title-row {
+  grid-column: 1 / -1;
+  margin-bottom: 1px;
+}
+
+body.nightfall-v3 .player-pane .pane-title {
+  color: var(--nf-cyan);
+  font-size: 7px;
+}
+
+body.nightfall-v3 #status-message {
+  max-width: 130px;
+  overflow: hidden;
+  font-size: 6px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.nightfall-v3 .player-pixel-status {
+  grid-column: 1 / -1;
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+body.nightfall-v3 .player-pixel-core {
+  display: none;
+}
+
+body.nightfall-v3 .player-status-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2px;
+}
+
+body.nightfall-v3 .player-status-grid > span {
+  min-height: 21px;
+  padding: 2px;
+  border-radius: 0;
+  background: rgba(18, 12, 32, .86);
+  text-align: center;
+}
+
+body.nightfall-v3 .player-status-grid small {
+  display: block;
+  color: var(--nf-muted);
+  font-size: 5px;
+}
+
+body.nightfall-v3 .player-status-grid strong {
+  font-size: 7px;
+}
+
+body.nightfall-v3 .bar-row {
+  min-width: 0;
+  margin: 0;
+}
+
+body.nightfall-v3 .bar-label {
+  gap: 3px;
+  margin-bottom: 1px;
+  font-size: 6px;
+}
+
+body.nightfall-v3 .bar-label span,
+body.nightfall-v3 .bar-label strong {
+  font-size: 6px;
+}
+
+body.nightfall-v3 .bar-track {
+  height: 5px;
+  border-radius: 0;
+}
+
+.nightfall-left-tabs,
+.nightfall-panel-tabs {
+  display: grid;
+  gap: 2px;
+  pointer-events: auto;
+}
+
+.nightfall-left-tabs {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.nightfall-panel-tabs {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.nightfall-left-tabs button,
+.nightfall-panel-tabs button {
+  min-height: 21px;
+  padding: 2px 4px;
+  border: 1px solid rgba(77, 59, 112, .9);
+  border-radius: 0;
+  color: var(--nf-muted);
+  background: rgba(7, 5, 15, .82);
+  font-family: "Courier New", "Microsoft YaHei", monospace;
+  font-size: 6px;
+  cursor: pointer;
+}
+
+.nightfall-left-tabs button.active,
+.nightfall-panel-tabs button.active {
+  border-color: var(--nf-cyan);
+  color: var(--nf-cyan);
+  background: rgba(15, 29, 39, .92);
+}
+
+body.nightfall-v3 .build-pane,
+body.nightfall-v3 .synergy-pane,
+body.nightfall-v3 #telemetry-panel,
+body.nightfall-v3 #acquired-panel,
+body.nightfall-v3 #loot-codex {
+  display: none !important;
+  max-height: min(28vh, 190px);
+  overflow: hidden;
+}
+
+body.nightfall-v3 .build-pane.nightfall-tab-active,
+body.nightfall-v3 .synergy-pane.nightfall-tab-active,
+body.nightfall-v3 #telemetry-panel.nightfall-tab-active,
+body.nightfall-v3 #acquired-panel.nightfall-tab-active,
+body.nightfall-v3 #loot-codex.nightfall-tab-active {
+  display: block !important;
+}
+
+body.nightfall-v3 .build-pane .pane-title-row,
+body.nightfall-v3 .synergy-pane .pane-title-row,
+body.nightfall-v3 #telemetry-panel .pane-title-row,
+body.nightfall-v3 #acquired-panel .pane-title-row,
+body.nightfall-v3 #loot-codex .pane-title-row {
+  margin-bottom: 4px;
+}
+
+body.nightfall-v3 .build-list,
+body.nightfall-v3 .synergy-list {
+  gap: 3px;
+}
+
+body.nightfall-v3 .build-chip,
+body.nightfall-v3 .synergy-chip,
+body.nightfall-v3 .acquired-item {
+  border-radius: 0;
+}
+
+body.nightfall-v3 .build-chip {
+  max-width: 100%;
+  padding: 3px 4px;
+  overflow: hidden;
+  font-size: 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.nightfall-v3 .synergy-chip {
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px 4px;
+  min-height: 23px;
+  padding: 3px 4px;
+}
+
+body.nightfall-v3 .synergy-chip small,
+body.nightfall-v3 .synergy-chip em {
+  display: none;
+}
+
+body.nightfall-v3 .synergy-chip strong,
+body.nightfall-v3 .synergy-state {
+  font-size: 7px;
+}
+
+#nightfall-mutation-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(77, 59, 112, .65);
+  color: var(--nf-muted);
+  font-family: "Courier New", "Microsoft YaHei", monospace;
+  font-size: 6px;
+}
+
+.nightfall-mutation-chip {
+  padding: 2px 3px;
+  border: 1px solid rgba(255, 209, 102, .56);
+  color: var(--nf-gold);
+  background: rgba(30, 20, 26, .9);
+}
+
+body.nightfall-v3 .telemetry-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3px;
+}
+
+body.nightfall-v3 .telemetry-grid > span {
+  min-height: 34px;
+  padding: 4px;
+  border-radius: 0;
+}
+
+body.nightfall-v3 .telemetry-grid small {
+  font-size: 6px;
+}
+
+body.nightfall-v3 .telemetry-grid strong {
+  font-size: 11px;
+}
+
+body.nightfall-v3 .acquired-item-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2px;
+  max-height: 150px;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+body.nightfall-v3 .acquired-item {
+  min-height: 23px;
+  padding: 3px 4px;
+}
+
+body.nightfall-v3 .acquired-item strong,
+body.nightfall-v3 .acquired-item small {
+  font-size: 7px;
+}
+
+body.nightfall-v3 .loot-codex-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3px;
+}
+
+body.nightfall-v3 .loot-entry {
+  display: grid;
+  grid-template-columns: 1fr;
+  place-items: center;
+  min-height: 35px;
+  padding: 3px;
+  border-radius: 0;
+}
+
+body.nightfall-v3 .loot-entry > span {
+  display: none;
+}
+
+body.nightfall-v3 .loot-pixel {
+  width: 22px;
+  height: 22px;
+  border-radius: 0;
+}
+
+body.nightfall-v3 .active-buffs {
+  bottom: calc(var(--arena-bottom) + 50px);
+  left: 50%;
+  max-width: min(36%, 360px);
+  transform: translateX(-50%);
+}
+
+body.nightfall-v3 .active-buffs span {
+  padding: 2px 4px;
+  border-radius: 0;
+  font-size: 6px;
+}
+
+body.nightfall-v3 #acquired-items-strip {
+  display: none !important;
+}
+
+body.nightfall-v3 #upgrade-screen.live-upgrade-screen .upgrade-panel {
+  top: calc(var(--arena-top) + 48px);
+  right: calc(var(--arena-right) + 7px);
+  width: clamp(235px, 25vw, 286px);
+  max-height: calc(100% - var(--arena-top) - var(--arena-bottom) - 104px);
+  padding: 6px;
+  border-color: var(--nf-line-bright);
+  background: rgba(7, 5, 15, .96);
+}
+
+body.nightfall-v3 #upgrade-screen.live-upgrade-screen .upgrade-panel::before,
+body.nightfall-v3 .live-upgrade-header .panel-kicker {
+  display: none;
+}
+
+body.nightfall-v3 .live-upgrade-header {
+  align-items: center;
+}
+
+body.nightfall-v3 #upgrade-title {
+  font-size: 11px !important;
+}
+
+body.nightfall-v3 .live-upgrade-meta {
+  gap: 2px;
+  margin-top: 4px;
+}
+
+body.nightfall-v3 .live-upgrade-meta span {
+  padding: 2px;
+  font-size: 6px;
+}
+
+body.nightfall-v3 .live-upgrade-meta strong {
+  display: inline;
+  margin-left: 2px;
+  font-size: 7px;
+}
+
+body.nightfall-v3 #upgrade-screen.live-upgrade-screen .upgrade-grid {
+  gap: 3px;
+  margin-top: 4px;
+}
+
+body.nightfall-v3 #upgrade-screen.live-upgrade-screen .live-upgrade-card {
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  min-height: 51px;
+  padding: 4px;
+}
+
+body.nightfall-v3 .live-upgrade-card .upgrade-key {
+  width: 16px;
+  min-height: 34px;
+  font-size: 9px;
+}
+
+body.nightfall-v3 #upgrade-screen.live-upgrade-screen .live-upgrade-card h3 {
+  margin: 2px 0 0;
+  font-size: 9px;
+}
+
+body.nightfall-v3 #upgrade-screen.live-upgrade-screen .live-upgrade-card p {
+  display: none;
+}
+
+body.nightfall-v3 .cosmic-contract-terminal {
+  top: calc(var(--arena-top) + 48px);
+  right: calc(var(--arena-right) + 7px);
+  width: min(270px, calc(100% - var(--arena-left) - var(--arena-right) - 14px));
+  max-height: min(50vh, 310px);
+  gap: 4px;
+  padding: 6px;
+}
+
+body.nightfall-v3 .contract-title-row {
+  padding-bottom: 3px;
+  font-size: 8px;
+}
+
+body.nightfall-v3 .contract-summary strong {
+  font-size: 9px;
+}
+
+body.nightfall-v3 .contract-summary small {
+  font-size: 7px;
+}
+
+body.nightfall-v3 .contract-options {
+  gap: 3px;
+}
+
+body.nightfall-v3 .contract-option {
+  min-height: 51px;
+  padding: 4px 4px 4px 28px;
+}
+
+body.nightfall-v3 .contract-key {
+  top: 4px;
+  left: 4px;
+  width: 16px;
+  height: 16px;
+  font-size: 8px;
+}
+
+body.nightfall-v3 .contract-option strong {
+  font-size: 8px;
+}
+
+body.nightfall-v3 .contract-option small,
+body.nightfall-v3 .contract-option em,
+body.nightfall-v3 .contract-option b {
+  font-size: 7px;
+}
+
+body.nightfall-v3 #boss-banner {
+  top: calc(var(--arena-top) + 48px);
+  min-width: 220px;
+  padding: 5px 10px;
+  border-radius: 0;
+  font-family: "Courier New", "Microsoft YaHei", monospace;
+}
+
+body.nightfall-v3 #start-screen {
+  background:
+    radial-gradient(circle at 50% 35%, rgba(83, 55, 127, .3), transparent 43%),
+    rgba(5, 3, 12, .9);
+}
+
+body.nightfall-v3 #start-screen .start-panel {
+  width: min(850px, calc(100% - 24px));
+  max-height: calc(100% - 20px);
+  padding: 16px;
+  overflow: auto;
+  border: 1px solid rgba(121, 230, 255, .35);
+  border-radius: 0;
+  background: rgba(7, 5, 15, .95);
+  box-shadow: 5px 5px 0 rgba(0, 0, 0, .52), inset 0 0 0 1px rgba(159, 122, 234, .12);
+}
+
+body.nightfall-v3 #start-screen .panel-kicker {
+  color: var(--nf-cyan);
+  font-family: "Courier New", monospace;
+  letter-spacing: .18em;
+}
+
+body.nightfall-v3 #start-screen h2 {
+  margin-bottom: 4px;
+  font-size: clamp(20px, 3vw, 32px);
+}
+
+body.nightfall-v3 #start-screen .panel-copy {
+  max-width: 720px;
+  margin: 0 auto;
+  color: var(--nf-muted);
+  font-size: 11px;
+}
+
+body.nightfall-v3 .hero-grid {
+  gap: 7px;
+  margin: 12px 0 8px;
+}
+
+body.nightfall-v3 .hero-card {
+  position: relative;
+  min-height: 150px;
+  padding: 13px 10px 10px;
+  border: 1px solid var(--nf-line);
+  border-radius: 0;
+  background: rgba(13, 9, 24, .92);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, .38);
+}
+
+body.nightfall-v3 .hero-card:hover,
+body.nightfall-v3 .hero-card:focus-visible,
+body.nightfall-v3 .hero-card.selected {
+  border-color: var(--nf-cyan);
+  background: rgba(15, 24, 36, .96);
+}
+
+.nightfall-hero-role {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  padding: 2px 4px;
+  border: 1px solid rgba(121, 230, 255, .5);
+  color: var(--nf-cyan);
+  background: #090611;
+  font-family: "Courier New", "Microsoft YaHei", monospace;
+  font-size: 6px;
+}
+
+.nightfall-hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+  width: 100%;
+  margin-top: 7px;
+}
+
+.nightfall-hero-stats i {
+  padding: 2px;
+  border: 1px solid rgba(77, 59, 112, .78);
+  color: var(--nf-muted);
+  background: rgba(7, 5, 15, .8);
+  font-size: 6px;
+  font-style: normal;
+  text-align: center;
+}
+
+.nightfall-run-promise {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin: 7px 0;
+}
+
+.nightfall-run-promise span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 29px;
+  padding: 4px 6px;
+  border: 1px solid rgba(77, 59, 112, .8);
+  color: var(--nf-muted);
+  background: rgba(10, 7, 19, .78);
+  font-size: 7px;
+  text-align: left;
+}
+
+.nightfall-run-promise b {
+  color: var(--nf-gold);
+  font-family: "Courier New", monospace;
+}
+
+body.nightfall-v3 .control-hints {
+  gap: 3px;
+  margin: 7px 0;
+}
+
+body.nightfall-v3 .control-hints span {
+  padding: 3px 5px;
+  border-radius: 0;
+  font-size: 7px;
+}
+
+body.nightfall-v3 .primary-button {
+  min-height: 38px;
+  border-radius: 0;
+  font-family: "Courier New", "Microsoft YaHei", monospace;
+  letter-spacing: .08em;
+}
+
+.nightfall-run-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin: 12px 0;
+}
+
+.nightfall-run-summary > div {
+  min-width: 0;
+  padding: 6px;
+  border: 1px solid rgba(77, 59, 112, .9);
+  background: rgba(13, 9, 24, .86);
+}
+
+.nightfall-run-summary small {
+  display: block;
+  color: var(--nf-muted);
+  font-size: 7px;
+}
+
+.nightfall-run-summary strong {
+  display: block;
+  margin-top: 2px;
+  overflow: hidden;
+  color: var(--nf-cyan);
+  font-family: "Courier New", monospace;
+  font-size: 15px;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 1100px), (max-height: 690px) {
+  #nightfall-ribbon {
+    right: calc(var(--arena-right) + 110px);
+    grid-template-columns: 90px minmax(190px, 1fr) 125px;
+  }
+
+  body.nightfall-v3 .stage-left {
+    width: min(198px, calc(48% - var(--arena-left) - 10px));
+  }
+
+  body.nightfall-v3 .stage-right {
+    width: min(186px, calc(48% - var(--arena-right) - 10px));
+  }
+
+  #nightfall-ability-dock {
+    right: auto;
+    left: 50%;
+    grid-template-columns: 82px minmax(135px, 1fr) 82px;
+    width: 380px;
+  }
+}
+
+@media (max-width: 900px), (max-height: 590px) {
+  #nightfall-ribbon {
+    right: calc(var(--arena-right) + 102px);
+    grid-template-columns: 80px minmax(160px, 1fr);
+  }
+
+  .nightfall-ribbon-objective {
+    display: none;
+  }
+
+  body.nightfall-v3 .stage-right {
+    display: none !important;
+  }
+
+  body.nightfall-v3 .stage-left {
+    width: min(190px, calc(100% - var(--arena-left) - var(--arena-right) - 14px));
+  }
+
+  body.nightfall-v3 .synergy-pane,
+  body.nightfall-v3 .nightfall-left-tabs {
+    display: none !important;
+  }
+
+  body.nightfall-v3 .build-pane {
+    display: none !important;
+  }
+
+  #nightfall-ability-dock {
+    right: auto;
+    left: 50%;
+    width: 350px;
+  }
+
+  body.nightfall-v3 #upgrade-screen.live-upgrade-screen .upgrade-panel,
+  body.nightfall-v3 .cosmic-contract-terminal {
+    width: min(250px, calc(100% - var(--arena-left) - var(--arena-right) - 14px));
+  }
+}
+
+@media (max-width: 680px), (max-height: 470px) {
+  body.nightfall-v3 .frame-header {
+    top: calc(var(--arena-top) + 3px);
+    right: calc(var(--arena-right) + 3px);
+  }
+
+  body.nightfall-v3 .frame-actions .icon-button {
+    min-height: 24px;
+    padding: 0 5px;
+    font-size: 6px;
+  }
+
+  #nightfall-ribbon {
+    top: calc(var(--arena-top) + 3px);
+    right: calc(var(--arena-right) + 94px);
+    left: calc(var(--arena-left) + 3px);
+    grid-template-columns: 72px minmax(130px, 1fr);
+    gap: 3px;
+  }
+
+  .nightfall-ribbon-side {
+    padding: 3px 4px;
+  }
+
+  .nightfall-ribbon-phase > span {
+    display: none;
+  }
+
+  .nightfall-boss-core {
+    padding: 3px 4px;
+  }
+
+  .nightfall-boss-heading strong {
+    display: none;
+  }
+
+  #nightfall-combat-feed {
+    top: calc(var(--arena-top) + 39px);
+    max-width: calc(100% - var(--arena-left) - var(--arena-right) - 10px);
+    padding: 3px 5px;
+    font-size: 7px;
+  }
+
+  body.nightfall-v3 .stage-left {
+    right: auto;
+    bottom: calc(var(--arena-bottom) + 47px);
+    left: calc(var(--arena-left) + 4px);
+    width: min(170px, calc(100% - var(--arena-left) - var(--arena-right) - 8px));
+  }
+
+  body.nightfall-v3 .player-pane {
+    padding: 4px !important;
+  }
+
+  body.nightfall-v3 .player-pane .pane-title-row,
+  body.nightfall-v3 .player-pixel-status {
+    display: none;
+  }
+
+  #nightfall-ability-dock {
+    right: calc(var(--arena-right) + 4px);
+    bottom: calc(var(--arena-bottom) + 4px);
+    left: calc(var(--arena-left) + 4px);
+    grid-template-columns: 68px minmax(120px, 1fr) 68px;
+    gap: 2px;
+    width: auto;
+    max-width: none;
+    transform: none;
+  }
+
+  .nightfall-ability {
+    min-height: 34px;
+    padding: 3px;
+  }
+
+  .nightfall-ability kbd {
+    min-width: 19px;
+    height: 20px;
+    font-size: 6px;
+  }
+
+  .nightfall-ability span {
+    display: none;
+  }
+
+  .nightfall-ability strong {
+    font-size: 7px;
+  }
+
+  body.nightfall-v3 .active-buffs {
+    display: none;
+  }
+
+  body.nightfall-v3 #upgrade-screen.live-upgrade-screen .upgrade-panel,
+  body.nightfall-v3 .cosmic-contract-terminal {
+    top: calc(var(--arena-top) + 39px);
+    right: calc(var(--arena-right) + 4px);
+    left: auto;
+    width: min(220px, calc(100% - var(--arena-left) - var(--arena-right) - 8px));
+    max-height: calc(100% - var(--arena-top) - var(--arena-bottom) - 84px);
+  }
+
+  body.nightfall-v3 #start-screen .start-panel {
+    padding: 8px;
+  }
+
+  body.nightfall-v3 #start-screen .panel-copy,
+  .nightfall-run-promise,
+  .nightfall-hero-stats {
+    display: none;
+  }
+
+  body.nightfall-v3 .hero-card {
+    min-height: 100px;
+    padding: 8px 5px 5px;
+  }
+
+  .nightfall-run-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #nightfall-combat-feed.visible,
+  .nightfall-boss-core.broken,
+  .nightfall-ability-primary.ready {
+    animation: none;
+  }
+
+  #nightfall-boss-hp-bar,
+  #nightfall-break-bar,
+  #nightfall-tide-bar {
+    transition: none;
+  }
+}

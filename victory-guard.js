@@ -6,7 +6,7 @@
     finalEndGame();
   };
 
-  const assetVersion = '20260723.6';
+  const assetVersion = '20260723.7';
 
   function loadStylesheet(name, marker) {
     if (document.querySelector(`link[data-${marker}]`)) return;
@@ -29,6 +29,9 @@
   loadStylesheet('cosmic-contracts', 'cosmic-contracts');
   loadStylesheet('adaptive-hud', 'adaptive-hud');
   loadStylesheet('adaptive-hud-expanded', 'adaptive-hud-expanded');
+  loadStylesheet('nightfall-v3', 'nightfall-v3');
   loadScript('cosmic-contracts', 'cosmic-contracts');
   loadScript('adaptive-hud', 'adaptive-hud');
+  loadScript('nightfall-v3', 'nightfall-v3');
+  loadScript('nightfall-v3-integrity', 'nightfall-v3-integrity');
 })();
