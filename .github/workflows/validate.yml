@@ -23,6 +23,7 @@ jobs:
         run: |
           node --check game.js
           node --check single-screen.js
+          node --check rich-content.js
           node --check fit-canvas.js
 
       - name: 检查核心静态文件
@@ -31,6 +32,8 @@ jobs:
           test -s style.css
           test -s game.js
           test -s single-screen.js
+          test -s rich-content.css
+          test -s rich-content.js
           test -s fit-canvas.css
           test -s fit-canvas.js
 
@@ -52,6 +55,18 @@ jobs:
           grep -q "完整单屏像素竞技场" index.html
           grep -q '<script src="./game.js"></script>' index.html
           grep -q '<script src="./single-screen.js"></script>' index.html
+
+      - name: 检查丰富道具与视觉扩展
+        run: |
+          grep -q "彗星权杖" rich-content.js
+          grep -q "棱镜星轮" rich-content.js
+          grep -q "虚空星雷" rich-content.js
+          grep -q "凤凰余烬" rich-content.js
+          grep -q "星蚀宝箱" rich-content.js
+          grep -q "drawAmbientMotes" rich-content.js
+          grep -q "drawShockwaves" rich-content.js
+          grep -q "rich-content.css" index.html
+          grep -q "rich-content.js" index.html
 
       - name: 检查完整战场适配
         run: |

@@ -7,6 +7,7 @@
   <title>Night Star Survivor</title>
   <link rel="stylesheet" href="./style.css" />
   <link rel="stylesheet" href="./fit-canvas.css" />
+  <link rel="stylesheet" href="./rich-content.css" />
 </head>
 <body>
   <main class="game-shell">
@@ -65,7 +66,7 @@
             <section class="panel start-panel">
               <p class="panel-kicker">星火尚未熄灭</p>
               <h2>选择一位守夜者</h2>
-              <p class="panel-copy">在完整可见的单屏竞技场中自动攻击、收集星尘、构筑武器，并击败每个阶段的星蚀首领。角色无法进入画面之外的隐藏区域。</p>
+              <p class="panel-copy">在完整可见的单屏竞技场中自动攻击、收集星尘、构筑七类武器，拾取星蚀道具，并击败每个阶段的星蚀首领。</p>
 
               <div class="hero-grid" id="hero-grid">
                 <button class="hero-card selected" data-hero="astrologer" type="button">
@@ -142,7 +143,7 @@
           </div>
           <div class="pane-block atmosphere-pane">
             <div class="pane-title-row"><span class="pane-title">夜幕情报</span><small>宇宙现场</small></div>
-            <p class="lore-copy">中央画面就是全部可移动地图。四条发光边界同时代表竞技场边缘，玩家、敌人、首领、危险区和掉落都不会进入画面之外。</p>
+            <p class="lore-copy">中央画面就是全部可移动地图。新武器、遗物、临时道具、精英掉落和进化特效都会直接出现在同一竞技场中。</p>
           </div>
         </aside>
       </div>
@@ -151,6 +152,7 @@
 
   <script src="./game.js"></script>
   <script src="./single-screen.js"></script>
+  <script src="./rich-content.js"></script>
   <script src="./fit-canvas.js"></script>
 </body>
 </html>
