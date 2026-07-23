@@ -13,7 +13,7 @@
     const stylesheet = document.createElement('link');
     stylesheet.rel = 'stylesheet';
     stylesheet.href = `./${name}.css?v=${assetVersion}`;
-    stylesheet.dataset[marker] = 'true';
+    stylesheet.setAttribute(`data-${marker}`, 'true');
     document.head.appendChild(stylesheet);
   }
 
@@ -22,12 +22,12 @@
     const script = document.createElement('script');
     script.src = `./${name}.js?v=${assetVersion}`;
     script.async = false;
-    script.dataset[marker] = 'true';
+    script.setAttribute(`data-${marker}`, 'true');
     document.body.appendChild(script);
   }
 
-  loadStylesheet('cosmic-contracts', 'cosmicContracts');
-  loadStylesheet('adaptive-hud', 'adaptiveHud');
-  loadScript('cosmic-contracts', 'cosmicContracts');
-  loadScript('adaptive-hud', 'adaptiveHud');
+  loadStylesheet('cosmic-contracts', 'cosmic-contracts');
+  loadStylesheet('adaptive-hud', 'adaptive-hud');
+  loadScript('cosmic-contracts', 'cosmic-contracts');
+  loadScript('adaptive-hud', 'adaptive-hud');
 })();
