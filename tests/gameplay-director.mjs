@@ -3,6 +3,8 @@ import fs from 'node:fs';
 const html = fs.readFileSync('index.html', 'utf8');
 const script = fs.readFileSync('gameplay-director.js', 'utf8');
 const css = fs.readFileSync('gameplay-director.css', 'utf8');
+const layoutCss = fs.readFileSync('gameplay-layout.css', 'utf8');
+const victoryGuard = fs.readFileSync('victory-guard.js', 'utf8');
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -30,9 +32,12 @@ for (const id of requiredIds) {
 }
 
 assert(html.includes('gameplay-director.css?v='), '未加载玩法导演样式');
+assert(html.includes('gameplay-layout.css?v='), '未加载玩法响应式样式');
 assert(html.includes('gameplay-director.js?v='), '未加载玩法导演脚本');
+assert(html.includes('victory-guard.js?v='), '未加载胜利竞态保护脚本');
 assert(html.indexOf('live-upgrade.js') < html.indexOf('gameplay-director.js'), '玩法导演必须在实时构筑之后加载');
-assert(html.indexOf('gameplay-director.js') < html.indexOf('fit-canvas.js'), '画布适配必须最后加载');
+assert(html.indexOf('gameplay-director.js') < html.indexOf('victory-guard.js'), '胜利保护必须在玩法导演之后加载');
+assert(html.indexOf('victory-guard.js') < html.indexOf('fit-canvas.js'), '画布适配必须最后加载');
 
 assert(script.includes("BOSS_NAMES = ['血月监视者', '星蚀巨像', '无光祭司']"), '缺少三首领任务');
 assert(script.includes('bossesDefeated >= BOSS_NAMES.length'), '缺少最终胜利条件');
@@ -48,5 +53,8 @@ assert(css.includes('#acquired-items-strip'), '未处理左下重复道具条');
 assert(css.includes('display: none !important'), '左下重复道具条仍可能显示');
 assert(css.includes('.synergy-chip.active'), '缺少星契激活样式');
 assert(css.includes('.objective-stage.complete'), '缺少目标完成样式');
+assert(layoutCss.includes('max-height: calc(100% - var(--arena-top)'), '左侧新增面板没有战场高度约束');
+assert(layoutCss.includes('.synergy-pane {\n    display: none;'), '低高度窗口没有隐藏次要星契面板');
+assert(victoryGuard.includes("classList.contains('visible')"), '同帧胜利与失败没有竞态保护');
 
-console.log('玩法目标、随机星契、音效、角色状态像素与重复道具隐藏检查通过');
+console.log('玩法目标、随机星契、音效、角色状态像素、胜利竞态与重复道具隐藏检查通过');
