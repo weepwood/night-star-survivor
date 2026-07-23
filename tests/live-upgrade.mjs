@@ -50,6 +50,9 @@ assert(script.includes('if (!paused)'), '实时构筑循环必须只在手动暂
 assert(script.includes('updateUpgradeState(dt)'), '倒计时未接入主循环');
 assert(script.includes('currentButtons[recommendedIndex]'), '超时后未自动选择推荐构筑');
 assert(script.includes('closeUpgradeTerminal(true)'), '重开或结束时未清理构筑队列');
+assert(script.includes("classList.contains('live-upgrade-active')"), '连续选择未识别已开启的构筑终端');
+assert(script.includes('if (!continuingQueue) protectionRemaining = PROTECTION_DURATION'), '连续选择会重复刷新减伤保护');
+assert(script.includes('metaClock = 0.1'), '构筑倒计时 UI 没有限制到 10Hz');
 
 assert(css.includes('background: transparent'), '升级层仍存在全屏遮罩');
 assert(css.includes('pointer-events: none'), '升级层应允许战场继续接收交互');
