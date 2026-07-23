@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const script = fs.readFileSync('nightfall-v3.js', 'utf8');
+const integrity = fs.readFileSync('nightfall-v3-integrity.js', 'utf8');
 const css = fs.readFileSync('nightfall-v3.css', 'utf8');
 const loader = fs.readFileSync('victory-guard.js', 'utf8');
 
@@ -27,6 +28,13 @@ assert.match(script, /nightfall-left-tabs/);
 assert.match(script, /nightfall-ability-dock/);
 assert.match(script, /nightfall-ribbon/);
 
+assert.match(integrity, /WeakMap/);
+assert.match(integrity, /enemy\.damage = 0/);
+assert.match(integrity, /enemy\.nightfallBreakCharge = 0/);
+assert.match(integrity, /originalBossDamage\.get\(enemy\)/);
+assert.match(integrity, /damageEnemyWithNightfallIntegrity/);
+assert.match(integrity, /updateWithNightfallIntegrity/);
+
 assert.match(css, /#nightfall-ribbon/);
 assert.match(css, /#nightfall-ability-dock/);
 assert.match(css, /\.nightfall-panel-tabs/);
@@ -42,9 +50,11 @@ assert.match(css, /prefers-reduced-motion/);
 
 const adaptiveScript = loader.indexOf("loadScript('adaptive-hud'");
 const nightfallScript = loader.indexOf("loadScript('nightfall-v3'");
+const integrityScript = loader.indexOf("loadScript('nightfall-v3-integrity'");
 const adaptiveCss = loader.indexOf("loadStylesheet('adaptive-hud-expanded'");
 const nightfallCss = loader.indexOf("loadStylesheet('nightfall-v3'");
 assert.ok(adaptiveScript >= 0 && nightfallScript > adaptiveScript, 'Nightfall V3 脚本必须在自适应 HUD 后加载');
+assert.ok(integrityScript > nightfallScript, '首领完整性守卫必须在 Nightfall V3 后加载');
 assert.ok(adaptiveCss >= 0 && nightfallCss > adaptiveCss, 'Nightfall V3 样式必须覆盖已有 HUD 样式');
 assert.match(loader, /assetVersion = '20260723\.7'/);
 
