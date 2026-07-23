@@ -41,6 +41,7 @@
   let recommendedIndex = 0;
   let choiceRemaining = 0;
   let protectionRemaining = 0;
+  let metaClock = 0;
 
   const finalUpdate = update;
   const finalHurtPlayer = hurtPlayer;
@@ -130,7 +131,7 @@
 
   function chooseOptions(pool) {
     const available = [...pool].filter(isAvailable);
-    const source = available.length >= 3 ? available : [...pool];
+    const source = available.length ? available : [...pool];
     const shuffled = source
       .map((upgrade) => ({ upgrade, roll: Math.random() }))
       .sort((a, b) => a.roll - b.roll)
@@ -212,15 +213,17 @@
       return;
     }
 
+    const continuingQueue = document.body.classList.contains('live-upgrade-active');
     upgradeState = UpgradeState.SELECTING;
     choosing = true;
     choiceRemaining = CHOICE_DURATION;
-    protectionRemaining = PROTECTION_DURATION;
+    metaClock = 0;
+    if (!continuingQueue) protectionRemaining = PROTECTION_DURATION;
     document.body.classList.add('live-upgrade-active');
     upgradePanel?.setAttribute('aria-live', 'polite');
     renderChoice(currentRequest);
     showOverlay(ui.upgradeScreen);
-    pushEnemiesAway();
+    if (!continuingQueue) pushEnemiesAway();
     ui.statusMessage.textContent = `星尘选择开启：战场流速 ${Math.round(WORLD_TIME_SCALE * 100)}%。`;
     updateUpgradeMeta();
     sound.level();
@@ -249,11 +252,11 @@
     currentRequest = null;
     currentOptions = [];
     currentButtons = [];
-    hideOverlay(ui.upgradeScreen);
 
     if (upgradeQueue.length) {
       beginNextChoice();
     } else {
+      hideOverlay(ui.upgradeScreen);
       closeUpgradeTerminal();
     }
   }
@@ -266,6 +269,7 @@
     currentButtons = [];
     choiceRemaining = 0;
     protectionRemaining = 0;
+    metaClock = 0;
     choosing = false;
     hideOverlay(ui.upgradeScreen);
     document.body.classList.remove('live-upgrade-active');
@@ -276,7 +280,11 @@
     if (upgradeState !== UpgradeState.SELECTING) return;
     choiceRemaining = Math.max(0, choiceRemaining - realDt);
     protectionRemaining = Math.max(0, protectionRemaining - realDt);
-    updateUpgradeMeta();
+    metaClock -= realDt;
+    if (metaClock <= 0) {
+      metaClock = 0.1;
+      updateUpgradeMeta();
+    }
     if (choiceRemaining <= 0) {
       const target = currentButtons[recommendedIndex] || currentButtons[0];
       target?.click();
