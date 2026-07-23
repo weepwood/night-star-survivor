@@ -1,0 +1,19 @@
+/* 展开模式恢复各模块原本的布局类型，并限制详情提示框高度。 */
+#hud-detail-tooltip {
+  max-height: calc(100vh - 18px);
+  overflow: hidden;
+}
+
+body.hud-expanded-mode .mission-summary small,
+body.hud-expanded-mode .synergy-chip small,
+body.hud-expanded-mode .synergy-chip em,
+body.hud-expanded-mode .loot-entry > span,
+body.hud-expanded-mode .contract-option small,
+body.hud-expanded-mode .contract-option em,
+body.hud-expanded-mode .contract-option b {
+  display: block;
+}
+
+body.hud-expanded-mode .objective-stage-list {
+  display: grid;
+}
