@@ -5,13 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Night Star Survivor - 暗夜像素幻想生存游戏" />
   <title>Night Star Survivor</title>
-  <link rel="stylesheet" href="./style.css?v=20260723.3" />
-  <link rel="stylesheet" href="./fit-canvas.css?v=20260723.3" />
-  <link rel="stylesheet" href="./rich-content.css?v=20260723.3" />
-  <link rel="stylesheet" href="./fullscreen-hud.css?v=20260723.3" />
-  <link rel="stylesheet" href="./combat-telemetry.css?v=20260723.3" />
-  <link rel="stylesheet" href="./hud-visibility.css?v=20260723.3" />
-  <link rel="stylesheet" href="./live-upgrade.css?v=20260723.3" />
+  <link rel="stylesheet" href="./style.css?v=20260723.4" />
+  <link rel="stylesheet" href="./fit-canvas.css?v=20260723.4" />
+  <link rel="stylesheet" href="./rich-content.css?v=20260723.4" />
+  <link rel="stylesheet" href="./fullscreen-hud.css?v=20260723.4" />
+  <link rel="stylesheet" href="./combat-telemetry.css?v=20260723.4" />
+  <link rel="stylesheet" href="./hud-visibility.css?v=20260723.4" />
+  <link rel="stylesheet" href="./live-upgrade.css?v=20260723.4" />
+  <link rel="stylesheet" href="./gameplay-director.css?v=20260723.4" />
 </head>
 <body>
   <main class="game-shell">
@@ -27,6 +28,7 @@
           <article class="metric-chip"><span>击败</span><strong id="kill-value">0</strong></article>
           <article class="metric-chip"><span>阶段</span><strong id="phase-value">薄暮</strong></article>
           <article class="metric-chip danger-chip"><span>威胁</span><strong id="threat-value">低</strong></article>
+          <article class="metric-chip objective-chip"><span>夜幕目标</span><strong id="objective-brief">目标 40s</strong></article>
           <article id="combat-output-chip" class="metric-chip combat-output-chip">
             <span>输出 / DPS</span>
             <strong id="combat-dps-value">0 DPS</strong>
@@ -42,10 +44,18 @@
       </header>
 
       <div class="battlefield-stage">
-        <aside class="stage-left ui-pane" aria-label="角色状态与当前构筑">
+        <aside class="stage-left ui-pane" aria-label="角色状态、目标与当前构筑">
           <div class="pane-block player-pane">
             <div class="pane-title-row"><span class="pane-title">守夜者状态</span><small id="status-message">等待进入夜幕。</small></div>
-            <div class="status-orbit" aria-hidden="true"><span></span><span></span><span></span></div>
+            <div class="player-pixel-status" aria-label="角色实时状态像素">
+              <div id="player-pixel-core" class="player-pixel-core" data-hero="astrologer" aria-hidden="true"></div>
+              <div class="player-status-grid">
+                <span><small>护甲</small><strong id="status-armor-value">0</strong></span>
+                <span><small>冲刺</small><strong id="status-dash-value">READY</strong></span>
+                <span><small>星爆</small><strong id="status-nova-value">0%</strong></span>
+                <span><small>连击</small><strong id="status-combo-value">—</strong></span>
+              </div>
+            </div>
             <div class="bar-row">
               <div class="bar-label"><span>生命</span><strong id="health-text">100 / 100</strong></div>
               <div class="bar-track health-track"><div id="health-bar" class="bar-fill"></div></div>
@@ -60,9 +70,28 @@
             </div>
           </div>
 
+          <div class="pane-block mission-pane pixel-terminal">
+            <div class="pane-title-row"><span class="pane-title">夜幕任务</span><small>击败三名首领</small></div>
+            <div class="mission-summary">
+              <strong id="objective-title">准备迎战血月监视者</strong>
+              <small id="objective-detail">坚持 40 秒，第一轮星蚀即将降临。</small>
+            </div>
+            <div class="mission-progress" aria-hidden="true"><div id="objective-progress-bar"></div></div>
+            <div class="objective-stage-list">
+              <span class="objective-stage active" data-objective-stage="0"><b>1</b><span>血月监视者</span><span data-objective-status>当前</span></span>
+              <span class="objective-stage" data-objective-stage="1"><b>2</b><span>星蚀巨像</span><span data-objective-status>锁定</span></span>
+              <span class="objective-stage" data-objective-stage="2"><b>3</b><span>无光祭司</span><span data-objective-status>锁定</span></span>
+            </div>
+          </div>
+
           <div class="pane-block build-pane">
             <div class="pane-title-row"><span class="pane-title">当前构筑</span><small>武器与进化</small></div>
             <div id="build-list" class="build-list"></div>
+          </div>
+
+          <div class="pane-block synergy-pane pixel-terminal">
+            <div class="pane-title-row"><span class="pane-title">本局星契</span><small>随机组合 · 3 条</small></div>
+            <div id="synergy-list" class="synergy-list"></div>
           </div>
         </aside>
 
@@ -78,7 +107,7 @@
             <section class="panel start-panel">
               <p class="panel-kicker">星火尚未熄灭</p>
               <h2>选择一位守夜者</h2>
-              <p class="panel-copy">整个网页窗口就是战场界面。升级选择不会暂停战斗，而会开启 35% 流速的实时构筑终端；生命、经验、星爆、DPS、累计输出和本局道具都会显示在竞技场内部。</p>
+              <p class="panel-copy">本局目标是击败 40、80、120 秒降临的三名星蚀首领。每局随机生成三条星契组合；升级选择不会暂停战斗，生命、目标、DPS、构筑和本局道具都会以内嵌像素 HUD 展示。</p>
 
               <div class="hero-grid" id="hero-grid">
                 <button class="hero-card selected" data-hero="astrologer" type="button">
@@ -117,7 +146,7 @@
                 <span>升级时 1 / 2 / 3 快选</span>
               </div>
 
-              <button id="start-button" class="primary-button" type="button">点燃星火</button>
+              <button id="start-button" class="primary-button" type="button">接受夜幕任务</button>
             </section>
           </div>
 
@@ -149,6 +178,17 @@
             </section>
           </div>
 
+          <div id="victory-screen" class="overlay">
+            <section class="panel victory-panel">
+              <div class="victory-mark" aria-hidden="true">✦</div>
+              <p class="panel-kicker">NIGHT CLEARED</p>
+              <h2>夜幕任务完成</h2>
+              <p id="victory-stats" class="panel-copy"></p>
+              <p id="victory-synergies"></p>
+              <button id="victory-restart-button" class="primary-button" type="button">开启新的星契</button>
+            </section>
+          </div>
+
           <div id="boss-banner" class="boss-banner" aria-live="polite">
             <span>WARNING</span>
             <strong id="boss-name">星蚀巨像</strong>
@@ -172,7 +212,7 @@
           <div id="acquired-panel" class="pane-block acquired-pane pixel-terminal">
             <div class="pane-title-row">
               <span class="pane-title">本局道具</span>
-              <small>获取记录</small>
+              <small>唯一展示区域</small>
             </div>
             <div id="acquired-item-list" class="acquired-item-list">
               <span class="empty-item">尚未获取道具</span>
@@ -182,6 +222,7 @@
           <div class="pane-block lore-pane">
             <div class="pane-title-row"><span class="pane-title">战场协议</span><small>操作提示</small></div>
             <div class="build-list tips-list">
+              <span class="build-chip">目标：击败三名首领</span>
               <span class="build-chip">移动：WASD / 方向键</span>
               <span class="build-chip">冲刺：Space</span>
               <span class="build-chip">星爆：Q</span>
@@ -191,18 +232,19 @@
           </div>
           <div class="pane-block atmosphere-pane">
             <div class="pane-title-row"><span class="pane-title">夜幕情报</span><small>宇宙现场</small></div>
-            <p class="lore-copy">升级时战斗进入 35% 慢动作，玩家仍可移动、冲刺和释放星爆；关键状态、输出统计和道具信息继续显示在战场内。</p>
+            <p class="lore-copy">左下重复道具条已关闭，本局道具只在右侧终端展示。围绕随机星契构筑，并击败三名阶段首领即可完成本局。</p>
           </div>
         </aside>
       </div>
     </section>
   </main>
 
-  <script src="./game.js?v=20260723.3"></script>
-  <script src="./single-screen.js?v=20260723.3"></script>
-  <script src="./rich-content.js?v=20260723.3"></script>
-  <script src="./combat-telemetry.js?v=20260723.3"></script>
-  <script src="./live-upgrade.js?v=20260723.3"></script>
-  <script src="./fit-canvas.js?v=20260723.3"></script>
+  <script src="./game.js?v=20260723.4"></script>
+  <script src="./single-screen.js?v=20260723.4"></script>
+  <script src="./rich-content.js?v=20260723.4"></script>
+  <script src="./combat-telemetry.js?v=20260723.4"></script>
+  <script src="./live-upgrade.js?v=20260723.4"></script>
+  <script src="./gameplay-director.js?v=20260723.4"></script>
+  <script src="./fit-canvas.js?v=20260723.4"></script>
 </body>
 </html>
