@@ -53,6 +53,12 @@
   }
 }
 
+@media (max-width: 680px), (max-height: 470px) {
+  .battlefield-frame[data-hud-version="2"] .top-metrics {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
 /* 低高度窗口使用右上角紧凑统计终端，避免覆盖角色状态区。 */
 @media (max-width: 820px), (max-height: 520px) {
   .battlefield-frame[data-hud-version="2"] .stage-right {
@@ -61,7 +67,8 @@
     right: calc(var(--arena-right) + 6px);
     bottom: auto;
     left: auto;
-    width: min(190px, calc(48% - var(--arena-right) - 8px));
+    width: clamp(164px, 32vw, 190px);
+    max-width: calc(100% - var(--arena-left) - var(--arena-right) - 12px);
     max-height: none;
     overflow: visible;
     gap: 4px;
@@ -119,18 +126,29 @@
 @media (max-width: 560px), (max-height: 420px) {
   .battlefield-frame[data-hud-version="2"] .stage-right {
     top: calc(var(--arena-top) + 46px);
-    width: min(174px, calc(54% - var(--arena-right) - 6px));
+    width: clamp(140px, 42vw, 174px);
+    max-width: calc(100% - var(--arena-left) - var(--arena-right) - 10px);
   }
 
-  .battlefield-frame[data-hud-version="2"] #telemetry-panel .pane-title-row {
-    display: none;
-  }
-
+  .battlefield-frame[data-hud-version="2"] #telemetry-panel .pane-title-row,
   .battlefield-frame[data-hud-version="2"] #telemetry-panel .telemetry-grid small {
     display: none;
   }
 
+  .battlefield-frame[data-hud-version="2"] #telemetry-panel .telemetry-grid > span::before {
+    display: block;
+    color: var(--muted);
+    font-size: 6px;
+    line-height: 1;
+  }
+
+  .battlefield-frame[data-hud-version="2"] #telemetry-panel .telemetry-grid > span:nth-child(1)::before { content: "DPS"; }
+  .battlefield-frame[data-hud-version="2"] #telemetry-panel .telemetry-grid > span:nth-child(2)::before { content: "DMG"; }
+  .battlefield-frame[data-hud-version="2"] #telemetry-panel .telemetry-grid > span:nth-child(3)::before { content: "MAX"; }
+  .battlefield-frame[data-hud-version="2"] #telemetry-panel .telemetry-grid > span:nth-child(4)::before { content: "HIT"; }
+
   .battlefield-frame[data-hud-version="2"] #telemetry-panel .telemetry-grid strong {
+    min-height: 9px;
     font-size: 8px;
   }
 
