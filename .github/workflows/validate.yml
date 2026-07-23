@@ -27,3 +27,13 @@ jobs:
           test -s index.html
           test -s style.css
           test -s game.js
+
+      - name: 检查 Pixel-perfect 渲染约束
+        run: |
+          grep -q "const VIEW_WIDTH = 640" game.js
+          grep -q "const VIEW_HEIGHT = 360" game.js
+          grep -q "const WORLD_WIDTH = 2560" game.js
+          grep -q "ctx.imageSmoothingEnabled = false" game.js
+          grep -q "window.devicePixelRatio" game.js
+          grep -q "image-rendering: pixelated" style.css
+          grep -q 'width="640" height="360"' index.html

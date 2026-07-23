@@ -9,116 +9,142 @@
 </head>
 <body>
   <main class="game-shell">
-    <header class="game-header">
-      <div>
-        <p class="eyebrow">NIGHT STAR PROTOCOL</p>
-        <h1>Night Star Survivor</h1>
-      </div>
-      <div class="header-actions">
-        <button id="sound-toggle" class="icon-button" type="button" aria-label="切换声音">声音：开</button>
-        <button id="pause-button" class="icon-button" type="button">暂停</button>
-      </div>
-    </header>
+    <section class="battlefield-frame unified-layout">
+      <header class="frame-header" aria-label="战场界面">
+        <div class="frame-brand">
+          <p class="eyebrow">NIGHT STAR PROTOCOL</p>
+          <h1>Night Star Survivor</h1>
+        </div>
+        <section class="top-metrics" aria-label="游戏状态">
+          <article class="metric-chip"><span>时间</span><strong id="time-value">00:00</strong></article>
+          <article class="metric-chip"><span>等级</span><strong id="level-value">1</strong></article>
+          <article class="metric-chip"><span>击败</span><strong id="kill-value">0</strong></article>
+          <article class="metric-chip"><span>阶段</span><strong id="phase-value">薄暮</strong></article>
+          <article class="metric-chip danger-chip"><span>威胁</span><strong id="threat-value">低</strong></article>
+          <article class="metric-chip render-chip"><span>像素渲染</span><strong id="render-value">640×360 · 每格 2 物理像素</strong></article>
+        </section>
+        <div class="frame-actions">
+          <button id="scale-toggle" class="icon-button" type="button" aria-label="切换整数像素倍率">物理像素：自动</button>
+          <button id="sound-toggle" class="icon-button" type="button" aria-label="切换声音">声音：开</button>
+          <button id="pause-button" class="icon-button" type="button">暂停</button>
+        </div>
+      </header>
 
-    <section class="hud-grid" aria-label="游戏状态">
-      <article class="hud-card"><span>生存时间</span><strong id="time-value">00:00</strong></article>
-      <article class="hud-card"><span>等级</span><strong id="level-value">1</strong></article>
-      <article class="hud-card"><span>击败</span><strong id="kill-value">0</strong></article>
-      <article class="hud-card"><span>阶段</span><strong id="phase-value">薄暮</strong></article>
-      <article class="hud-card danger-card"><span>威胁</span><strong id="threat-value">低</strong></article>
-    </section>
-
-    <section class="battlefield-frame">
-      <canvas id="game-canvas" width="960" height="540" aria-label="游戏战场"></canvas>
-
-      <div id="start-screen" class="overlay visible">
-        <section class="panel start-panel">
-          <p class="panel-kicker">星火尚未熄灭</p>
-          <h2>选择一位守夜者</h2>
-          <p class="panel-copy">在不断收缩的夜幕中自动攻击、收集星尘、构筑武器，并击败每个阶段的星蚀首领。</p>
-
-          <div class="hero-grid" id="hero-grid">
-            <button class="hero-card selected" data-hero="astrologer" type="button">
-              <span class="hero-portrait astrologer-portrait" aria-hidden="true"></span>
-              <strong>星术师</strong>
-              <small>高伤害、快速施法</small>
-              <em>初始：双重星矢</em>
-            </button>
-            <button class="hero-card" data-hero="warden" type="button">
-              <span class="hero-portrait warden-portrait" aria-hidden="true"></span>
-              <strong>守夜人</strong>
-              <small>高生命、坚固护甲</small>
-              <em>初始：星辉护盾</em>
-            </button>
-            <button class="hero-card" data-hero="ranger" type="button">
-              <span class="hero-portrait ranger-portrait" aria-hidden="true"></span>
-              <strong>逐星者</strong>
-              <small>高速移动、高暴击</small>
-              <em>初始：迅捷之靴</em>
-            </button>
+      <div class="battlefield-stage">
+        <aside class="stage-left ui-pane">
+          <div class="pane-block player-pane">
+            <div class="pane-title-row"><span class="pane-title">守夜者状态</span><small id="status-message">等待进入夜幕。</small></div>
+            <div class="status-orbit" aria-hidden="true"><span></span><span></span><span></span></div>
+            <div class="bar-row">
+              <div class="bar-label"><span>生命</span><strong id="health-text">100 / 100</strong></div>
+              <div class="bar-track health-track"><div id="health-bar" class="bar-fill"></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label"><span>经验</span><strong id="xp-text">0 / 24</strong></div>
+              <div class="bar-track xp-track"><div id="xp-bar" class="bar-fill"></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label"><span>星爆能量</span><strong id="nova-text">0%</strong></div>
+              <div class="bar-track nova-track"><div id="nova-bar" class="bar-fill"></div></div>
+            </div>
           </div>
 
-          <label class="difficulty-field">
-            <span>难度</span>
-            <select id="difficulty-select">
-              <option value="0.82">故事</option>
-              <option value="1" selected>标准</option>
-              <option value="1.28">噩梦</option>
-            </select>
-          </label>
+          <div class="pane-block build-pane">
+            <div class="pane-title-row"><span class="pane-title">当前构筑</span><small>武器与进化</small></div>
+            <div id="build-list" class="build-list"></div>
+          </div>
+        </aside>
 
-          <div class="control-hints">
-            <span>WASD / 方向键移动</span>
-            <span>Space 冲刺</span>
-            <span>Q 星爆</span>
+        <div class="stage-center">
+          <div class="canvas-shell">
+            <canvas id="game-canvas" width="640" height="360" aria-label="大地图像素游戏战场"></canvas>
           </div>
 
-          <button id="start-button" class="primary-button" type="button">点燃星火</button>
-        </section>
-      </div>
+          <div id="start-screen" class="overlay visible">
+            <section class="panel start-panel">
+              <p class="panel-kicker">星火尚未熄灭</p>
+              <h2>选择一位守夜者</h2>
+              <p class="panel-copy">在不断扩张的夜幕中自动攻击、收集星尘、构筑武器，并击败每个阶段的星蚀首领。</p>
 
-      <div id="upgrade-screen" class="overlay">
-        <section class="panel upgrade-panel">
-          <p class="panel-kicker">星尘共鸣</p>
-          <h2 id="upgrade-title">选择一项强化</h2>
-          <div id="upgrade-options" class="upgrade-grid"></div>
-        </section>
-      </div>
+              <div class="hero-grid" id="hero-grid">
+                <button class="hero-card selected" data-hero="astrologer" type="button">
+                  <span class="hero-portrait astrologer-portrait" aria-hidden="true"></span>
+                  <strong>星术师</strong>
+                  <small>高伤害、快速施法</small>
+                  <em>初始：双重星矢</em>
+                </button>
+                <button class="hero-card" data-hero="warden" type="button">
+                  <span class="hero-portrait warden-portrait" aria-hidden="true"></span>
+                  <strong>守夜人</strong>
+                  <small>高生命、坚固护甲</small>
+                  <em>初始：星辉护盾</em>
+                </button>
+                <button class="hero-card" data-hero="ranger" type="button">
+                  <span class="hero-portrait ranger-portrait" aria-hidden="true"></span>
+                  <strong>逐星者</strong>
+                  <small>高速移动、高暴击</small>
+                  <em>初始：迅捷之靴</em>
+                </button>
+              </div>
 
-      <div id="game-over-screen" class="overlay">
-        <section class="panel game-over-panel">
-          <p class="panel-kicker">星火熄灭</p>
-          <h2>夜幕吞没了守夜者</h2>
-          <p id="game-over-stats" class="panel-copy"></p>
-          <button id="restart-button" class="primary-button" type="button">重新点燃</button>
-        </section>
-      </div>
+              <label class="difficulty-field">
+                <span>难度</span>
+                <select id="difficulty-select">
+                  <option value="0.82">故事</option>
+                  <option value="1" selected>标准</option>
+                  <option value="1.28">噩梦</option>
+                </select>
+              </label>
 
-      <div id="boss-banner" class="boss-banner" aria-live="polite">
-        <span>WARNING</span>
-        <strong id="boss-name">星蚀巨像</strong>
-      </div>
-    </section>
+              <div class="control-hints">
+                <span>WASD / 方向键移动</span>
+                <span>Space 冲刺</span>
+                <span>Q 星爆</span>
+              </div>
 
-    <section class="status-panel">
-      <div class="bars">
-        <div class="bar-row">
-          <div class="bar-label"><span>生命</span><strong id="health-text">100 / 100</strong></div>
-          <div class="bar-track health-track"><div id="health-bar" class="bar-fill"></div></div>
+              <button id="start-button" class="primary-button" type="button">点燃星火</button>
+            </section>
+          </div>
+
+          <div id="upgrade-screen" class="overlay">
+            <section class="panel upgrade-panel">
+              <p class="panel-kicker">星尘共鸣</p>
+              <h2 id="upgrade-title">选择一项强化</h2>
+              <div id="upgrade-options" class="upgrade-grid"></div>
+            </section>
+          </div>
+
+          <div id="game-over-screen" class="overlay">
+            <section class="panel game-over-panel">
+              <p class="panel-kicker">星火熄灭</p>
+              <h2>夜幕吞没了守夜者</h2>
+              <p id="game-over-stats" class="panel-copy"></p>
+              <button id="restart-button" class="primary-button" type="button">重新点燃</button>
+            </section>
+          </div>
+
+          <div id="boss-banner" class="boss-banner" aria-live="polite">
+            <span>WARNING</span>
+            <strong id="boss-name">星蚀巨像</strong>
+          </div>
         </div>
-        <div class="bar-row">
-          <div class="bar-label"><span>经验</span><strong id="xp-text">0 / 24</strong></div>
-          <div class="bar-track xp-track"><div id="xp-bar" class="bar-fill"></div></div>
-        </div>
-        <div class="bar-row">
-          <div class="bar-label"><span>星爆能量（Q）</span><strong id="nova-text">0%</strong></div>
-          <div class="bar-track nova-track"><div id="nova-bar" class="bar-fill"></div></div>
-        </div>
+
+        <aside class="stage-right ui-pane">
+          <div class="pane-block lore-pane">
+            <div class="pane-title-row"><span class="pane-title">战场协议</span><small>操作提示</small></div>
+            <div class="build-list tips-list">
+              <span class="build-chip">移动：WASD / 方向键</span>
+              <span class="build-chip">冲刺：Space</span>
+              <span class="build-chip">星爆：Q</span>
+              <span class="build-chip">暂停：P / Esc</span>
+            </div>
+          </div>
+          <div class="pane-block atmosphere-pane">
+            <div class="pane-title-row"><span class="pane-title">夜幕情报</span><small>宇宙现场</small></div>
+            <p class="lore-copy">守夜者的仪表已与战场终端合并。左侧追踪生存状态与构筑信息，右侧保留操作与世界观情报，中央保持纯粹战斗视野。</p>
+          </div>
+        </aside>
       </div>
-      <aside class="build-panel">
-        <div class="build-heading"><span>当前构筑</span><small id="status-message">等待进入夜幕。</small></div>
-        <div id="build-list" class="build-list"></div>
-      </aside>
     </section>
   </main>
 
