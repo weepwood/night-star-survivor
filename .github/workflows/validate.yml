@@ -5,84 +5,6 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-
-jobs:
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 检出代码
-        uses: actions/checkout@v4
-        with:
-          ref: fix/single-screen-arena
-
-      - name: 应用单屏竞技场修复
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import re
-
-          game = Path('game.js')
-          text = game.read_text(encoding='utf-8')
-          if 'const WORLD_WIDTH = 2560;' in text:
-              replacements = {
-                  'const WORLD_WIDTH = 2560;': 'const WORLD_WIDTH = VIEW_WIDTH;',
-                  'const WORLD_HEIGHT = 1440;': 'const WORLD_HEIGHT = VIEW_HEIGHT;',
-                  "  camera.x = Math.round(player.x - VIEW_WIDTH / 2);\n  camera.y = Math.round(player.y - VIEW_HEIGHT / 2);": "  camera.x = 0;\n  camera.y = 0;",
-                  "  ui.statusMessage.textContent = '星火已点燃。大地图会随角色移动。';": "  ui.statusMessage.textContent = '星火已点燃。整个竞技场已完整显示。';",
-                  "  ui.gameOverStats.textContent = `生存 ${Math.floor(elapsed)} 秒，探索大地图并达到 ${player.level} 级，击败 ${player.kills} 名夜行者。`;": "  ui.gameOverStats.textContent = `生存 ${Math.floor(elapsed)} 秒，在单屏竞技场达到 ${player.level} 级，击败 ${player.kills} 名夜行者。`;",
-                  '  for (let i = 0; i < 620; i += 1) {': '  for (let i = 0; i < 150; i += 1) {',
-              }
-              for old, new in replacements.items():
-                  if old not in text:
-                      raise SystemExit(f'未找到预期内容: {old}')
-                  text = text.replace(old, new, 1)
-
-              text, count = re.subn(
-                  r"function updateCamera\(\) \{.*?\n\}",
-                  "function updateCamera() {\n  camera.x = 0;\n  camera.y = 0;\n}",
-                  text,
-                  count=1,
-                  flags=re.S,
-              )
-              if count != 1:
-                  raise SystemExit('未能替换摄像机函数')
-
-              text, count = re.subn(
-                  r"function spawnPoint\(\) \{.*?\n\}",
-                  "function spawnPoint() {\n  const margin = 14;\n  const edge = Math.floor(Math.random() * 4);\n  if (edge === 0) return [Math.floor(Math.random() * (WORLD_WIDTH - margin * 2)) + margin, margin];\n  if (edge === 1) return [WORLD_WIDTH - margin, Math.floor(Math.random() * (WORLD_HEIGHT - margin * 2)) + margin];\n  if (edge === 2) return [Math.floor(Math.random() * (WORLD_WIDTH - margin * 2)) + margin, WORLD_HEIGHT - margin];\n  return [margin, Math.floor(Math.random() * (WORLD_HEIGHT - margin * 2)) + margin];\n}",
-                  text,
-                  count=1,
-                  flags=re.S,
-              )
-              if count != 1:
-                  raise SystemExit('未能替换敌人生成点函数')
-              game.write_text(text, encoding='utf-8')
-
-              index = Path('index.html')
-              index_text = index.read_text(encoding='utf-8')
-              index_text = index_text.replace('大地图像素游戏战场', '完整单屏像素竞技场')
-              index_text = index_text.replace('在不断扩张的夜幕中自动攻击、收集星尘、构筑武器，并击败每个阶段的星蚀首领。', '在完整可见的单屏竞技场中自动攻击、收集星尘、构筑武器，并击败每个阶段的星蚀首领。')
-              index_text = index_text.replace('中央保持纯粹战斗视野。', '中央完整展示全部可移动区域，不存在镜头之外的隐藏地图。')
-              index.write_text(index_text, encoding='utf-8')
-
-              readme = Path('README.md')
-              readme_text = readme.read_text(encoding='utf-8')
-              readme_text = readme_text.replace('- 2560×1440 大地图与整数坐标镜头跟随\n', '- 640×360 单屏竞技场，完整地图始终可见\n')
-              readme_text = readme_text.replace('大地图', '单屏竞技场')
-              readme.write_text(readme_text, encoding='utf-8')
-
-          temporary = Path('.github/workflows/apply-single-screen.yml')
-          if temporary.exists():
-              temporary.unlink()
-
-          final_workflow = '''name: 网页游戏检查
-
-on:
-  pull_request:
-  workflow_dispatch:
-
-permissions:
   contents: read
 
 jobs:
@@ -100,6 +22,7 @@ jobs:
       - name: 检查 JavaScript 语法
         run: |
           node --check game.js
+          node --check single-screen.js
           node --check fit-canvas.js
 
       - name: 检查核心静态文件
@@ -107,6 +30,7 @@ jobs:
           test -s index.html
           test -s style.css
           test -s game.js
+          test -s single-screen.js
           test -s fit-canvas.css
           test -s fit-canvas.js
 
@@ -114,8 +38,6 @@ jobs:
         run: |
           grep -q "const VIEW_WIDTH = 640" game.js
           grep -q "const VIEW_HEIGHT = 360" game.js
-          grep -q "const WORLD_WIDTH = VIEW_WIDTH" game.js
-          grep -q "const WORLD_HEIGHT = VIEW_HEIGHT" game.js
           grep -q "ctx.imageSmoothingEnabled = false" game.js
           grep -q "window.devicePixelRatio" game.js
           grep -q "image-rendering: pixelated" style.css
@@ -123,10 +45,13 @@ jobs:
 
       - name: 检查单屏竞技场约束
         run: |
-          grep -q "function updateCamera()" game.js
-          grep -q "camera.x = 0" game.js
-          grep -q "camera.y = 0" game.js
+          grep -q "updateCameraSingleScreen" single-screen.js
+          grep -q "camera.x = 0" single-screen.js
+          grep -q "camera.y = 0" single-screen.js
+          grep -q "clampToArena(player)" single-screen.js
           grep -q "完整单屏像素竞技场" index.html
+          grep -q '<script src="./game.js"></script>' index.html
+          grep -q '<script src="./single-screen.js"></script>' index.html
 
       - name: 检查完整战场适配
         run: |
@@ -135,32 +60,3 @@ jobs:
           grep -q "overflow: hidden" fit-canvas.css
           grep -q "fit-canvas.css" index.html
           grep -q "fit-canvas.js" index.html
-'''
-          Path('.github/workflows/validate.yml').write_text(final_workflow, encoding='utf-8')
-          PY
-
-      - name: 配置 Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: 验证转换结果
-        run: |
-          node --check game.js
-          node --check fit-canvas.js
-          grep -q "const WORLD_WIDTH = VIEW_WIDTH" game.js
-          grep -q "const WORLD_HEIGHT = VIEW_HEIGHT" game.js
-          grep -q "camera.x = 0" game.js
-          grep -q "camera.y = 0" game.js
-
-      - name: 提交正式修复
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if git diff --cached --quiet; then
-            echo "无需提交"
-          else
-            git commit -m "将大地图改为完整可见的单屏竞技场"
-            git push origin HEAD:fix/single-screen-arena
-          fi
