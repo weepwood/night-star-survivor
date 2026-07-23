@@ -1,0 +1,99 @@
+name: 应用单屏竞技场修复
+
+on:
+  push:
+    branches:
+      - fix/single-screen-arena
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ !contains(github.event.head_commit.message, '[single-screen-applied]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          ref: fix/single-screen-arena
+
+      - name: 将大地图转换为单屏竞技场
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          game = Path('game.js')
+          text = game.read_text(encoding='utf-8')
+          replacements = {
+              'const WORLD_WIDTH = 2560;': 'const WORLD_WIDTH = VIEW_WIDTH;',
+              'const WORLD_HEIGHT = 1440;': 'const WORLD_HEIGHT = VIEW_HEIGHT;',
+              "  camera.x = Math.round(player.x - VIEW_WIDTH / 2);\n  camera.y = Math.round(player.y - VIEW_HEIGHT / 2);": "  camera.x = 0;\n  camera.y = 0;",
+              "  ui.statusMessage.textContent = '星火已点燃。大地图会随角色移动。';": "  ui.statusMessage.textContent = '星火已点燃。整个竞技场已完整显示。';",
+              "  ui.gameOverStats.textContent = `生存 ${Math.floor(elapsed)} 秒，探索大地图并达到 ${player.level} 级，击败 ${player.kills} 名夜行者。`;": "  ui.gameOverStats.textContent = `生存 ${Math.floor(elapsed)} 秒，在单屏竞技场达到 ${player.level} 级，击败 ${player.kills} 名夜行者。`;",
+              '  for (let i = 0; i < 620; i += 1) {': '  for (let i = 0; i < 150; i += 1) {',
+          }
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f'未找到预期内容: {old}')
+              text = text.replace(old, new, 1)
+
+          text, count = re.subn(
+              r"function updateCamera\(\) \{.*?\n\}",
+              "function updateCamera() {\n  camera.x = 0;\n  camera.y = 0;\n}",
+              text,
+              count=1,
+              flags=re.S,
+          )
+          if count != 1:
+              raise SystemExit('未能替换摄像机函数')
+
+          text, count = re.subn(
+              r"function spawnPoint\(\) \{.*?\n\}",
+              "function spawnPoint() {\n  const margin = 14;\n  const edge = Math.floor(Math.random() * 4);\n  if (edge === 0) return [Math.floor(Math.random() * (WORLD_WIDTH - margin * 2)) + margin, margin];\n  if (edge === 1) return [WORLD_WIDTH - margin, Math.floor(Math.random() * (WORLD_HEIGHT - margin * 2)) + margin];\n  if (edge === 2) return [Math.floor(Math.random() * (WORLD_WIDTH - margin * 2)) + margin, WORLD_HEIGHT - margin];\n  return [margin, Math.floor(Math.random() * (WORLD_HEIGHT - margin * 2)) + margin];\n}",
+              text,
+              count=1,
+              flags=re.S,
+          )
+          if count != 1:
+              raise SystemExit('未能替换敌人生成点函数')
+
+          game.write_text(text, encoding='utf-8')
+
+          readme = Path('README.md')
+          if readme.exists():
+              readme_text = readme.read_text(encoding='utf-8')
+              readme_text = readme_text.replace('- 2560×1440 大地图与整数坐标镜头跟随\n', '- 640×360 单屏竞技场，完整地图始终可见\n')
+              readme_text = readme_text.replace('大地图', '单屏竞技场')
+              readme.write_text(readme_text, encoding='utf-8')
+
+          index = Path('index.html')
+          if index.exists():
+              index_text = index.read_text(encoding='utf-8')
+              index_text = index_text.replace('大地图像素游戏战场', '完整单屏像素竞技场')
+              index_text = index_text.replace('在不断扩张的夜幕中自动攻击、收集星尘、构筑武器，并击败每个阶段的星蚀首领。', '在完整可见的单屏竞技场中自动攻击、收集星尘、构筑武器，并击败每个阶段的星蚀首领。')
+              index_text = index_text.replace('中央保持纯粹战斗视野。', '中央完整展示全部可移动区域，不存在镜头之外的隐藏地图。')
+              index.write_text(index_text, encoding='utf-8')
+
+          validate = Path('.github/workflows/validate.yml')
+          if validate.exists():
+              validate_text = validate.read_text(encoding='utf-8')
+              validate_text = validate_text.replace('grep -q "const WORLD_WIDTH = 2560" game.js', 'grep -q "const WORLD_WIDTH = VIEW_WIDTH" game.js')
+              validate_text = validate_text.replace('grep -q "const WORLD_HEIGHT = 1440" game.js', 'grep -q "const WORLD_HEIGHT = VIEW_HEIGHT" game.js')
+              validate_text += '\n      - name: 检查单屏竞技场约束\n        run: |\n          grep -q "function updateCamera()" game.js\n          grep -q "camera.x = 0" game.js\n          grep -q "camera.y = 0" game.js\n'
+              validate.write_text(validate_text, encoding='utf-8')
+
+          Path('.github/workflows/apply-single-screen.yml').unlink()
+          PY
+
+      - name: 检查脚本语法
+        run: node --check game.js
+
+      - name: 提交单屏竞技场修复
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "[single-screen-applied] 将大地图改为单屏竞技场"
+          git push origin HEAD:fix/single-screen-arena
