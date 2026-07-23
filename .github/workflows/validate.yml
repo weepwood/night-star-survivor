@@ -20,13 +20,17 @@ jobs:
           node-version: 22
 
       - name: 检查 JavaScript 语法
-        run: node --check game.js
+        run: |
+          node --check game.js
+          node --check fit-canvas.js
 
       - name: 检查核心静态文件
         run: |
           test -s index.html
           test -s style.css
           test -s game.js
+          test -s fit-canvas.css
+          test -s fit-canvas.js
 
       - name: 检查 Pixel-perfect 渲染约束
         run: |
@@ -37,3 +41,11 @@ jobs:
           grep -q "window.devicePixelRatio" game.js
           grep -q "image-rendering: pixelated" style.css
           grep -q 'width="640" height="360"' index.html
+
+      - name: 检查完整战场适配
+        run: |
+          grep -q "fitWholeBattlefield" fit-canvas.js
+          grep -q "ResizeObserver" fit-canvas.js
+          grep -q "overflow: hidden" fit-canvas.css
+          grep -q "fit-canvas.css" index.html
+          grep -q "fit-canvas.js" index.html
